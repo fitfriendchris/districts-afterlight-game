@@ -40,6 +40,20 @@ local WORLD_REACTIONS = {
 		lighting.ClockTime = 19.4
 		lighting.Brightness = 2.4
 	end,
+
+	-- Chapter 2 begins: the emergency broadcast + the fall of evening light
+	outbreak_started = function()
+		if reacted.outbreak_started then
+			return
+		end
+		reacted.outbreak_started = true
+		setNewsHeadline("EMERGENCY BROADCAST: HARBOR FACILITY OUTAGE — STAY INDOORS")
+		local lighting = game:GetService("Lighting")
+		lighting.ClockTime = 19.8
+		lighting.Brightness = 1.7
+		lighting.FogEnd = 520
+		lighting.FogColor = Color3.fromRGB(24, 26, 34)
+	end,
 }
 
 function CampaignService.hasFlag(player: Player, flag: string): boolean

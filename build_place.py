@@ -525,6 +525,34 @@ def build_props():
     return props
 
 
+def build_phase2_nodes(hx, hz):
+    """Phase 2: scavenge rubble, infected spawn markers, safehouse barricade anchor."""
+    rubble = Node("Model", "Rubble")
+    pile_spots = [(34, -52), (-44, -48), (66, -28)]
+    for i, (px, pz) in enumerate(pile_spots, start=1):
+        base = part(f"RubblePile{i}", (4.5, 1.3, 4.5), (px, 0.8, pz), color=(112, 108, 100), material="Cobblestone")
+        shard = part(f"RubbleShard{i}a", (1.6, 0.9, 1.6), (px + 1.2, 0.9, pz + 0.9), yaw=25,
+                     color=(96, 92, 86), material="Concrete")
+        shard_b = part(f"RubbleShard{i}b", (1.1, 0.7, 1.1), (px - 1.1, 0.7, pz - 0.9), yaw=-40,
+                       color=(128, 108, 76), material="Wood")
+        beam = part(f"RubbleBeam{i}", (0.5, 0.5, 4.2), (px - 0.4, 1.1, pz + 0.2), yaw=65,
+                    color=(126, 92, 58), material="Wood")
+        rubble.add(model(f"Rubble{i}", base, shard, shard_b, beam))
+
+    spawns = Node("Model", "InfectedSpawns")
+    for i, (px, pz) in enumerate(((8, -64), (-30, -76), (54, -52)), start=1):
+        marker = part(f"Spawn{i}", (1, 3, 1), (px, 3.0, pz), color=(40, 90, 40),
+                      material="Grass", transparency=1, cancollide=False)
+        spawns.add(marker)
+
+    safehouse = Node("Model", "Safehouse")
+    anchor = part("BarricadeAnchor", (0.4, 6, 4.4), (hx - 3.75, 3.0, hz + 8.7),
+                  color=(140, 96, 50), material="Wood", transparency=1, cancollide=False)
+    safehouse.add(anchor)
+
+    return model("Phase2Nodes", rubble, spawns, safehouse)
+
+
 def build_world():
     home = build_home(-60, -8)
     meridian = Node("Model", "Meridian")
@@ -547,6 +575,7 @@ def build_world():
               build_building("Building6", 6, 92, 34, 22, 24, "-z", (152, 152, 158)),
               build_building("Building7", -66, 58, 28, 20, 34, "+x", (150, 162, 148))),
         build_targets(),
+        build_phase2_nodes(-60, -8),
         model("Vans", build_van("Van1", 46, -8), build_van("Van2", 46, 16)),
         model("Props", *build_props()),
     )
@@ -562,6 +591,8 @@ DELIVERY_TARGETS = [
     (-49.9, 0.23, 58.0),
 ]
 PACKAGE_DEPOT = (20.0, 1.9, -12.0)
+RUBBLE_PILES = [(34.0, 0.8, -52.0), (-44.0, 0.8, -48.0), (66.0, 0.8, -28.0)]
+INFECTED_SPAWNS = [(8.0, 3.0, -64.0), (-30.0, 3.0, -76.0), (54.0, 3.0, -52.0)]
 
 
 def write_world_layout(home_interior):
@@ -575,6 +606,15 @@ def write_world_layout(home_interior):
         "\tDELIVERY_TARGETS = {",
     ]
     for (x, y, z) in DELIVERY_TARGETS:
+        lines.append("\t\t{ x = %s, y = %s, z = %s }," % (num(x), num(y), num(z)))
+    lines.append("\t},")
+    lines.append("\tBARRICADE = { x = %s, y = 3.0, z = %s }," % (num(home_x - 3.75), num(home_z + 8.7)))
+    lines.append("\tRUBBLE_PILES = {")
+    for (x, y, z) in RUBBLE_PILES:
+        lines.append("\t\t{ x = %s, y = %s, z = %s }," % (num(x), num(y), num(z)))
+    lines.append("\t},")
+    lines.append("\tINFECTED_SPAWNS = {")
+    for (x, y, z) in INFECTED_SPAWNS:
         lines.append("\t\t{ x = %s, y = %s, z = %s }," % (num(x), num(y), num(z)))
     lines.append("\t},")
     lines.append("}")

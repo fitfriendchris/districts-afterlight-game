@@ -1,4 +1,4 @@
-# Districts: Afterlight — Vertical Slice (Phase 0 + 1)
+# Districts: Afterlight — Vertical Slice (Phase 0 + 1 + 2 core)
 
 Roblox open-world roleplay / zombie-survival game, built from the complete
 design blueprint. This repo currently implements **Phase 0 (foundation) and
@@ -39,6 +39,16 @@ warn in the output).
   controller). Sit to claim; hop to release. Wraps paint your claimed van.
 - **HUD** — cash, level/XP bar, objective tracker, toasts, deliver button.
 - **Dialogue** — Marcus trees incl. foreshadowing ("harbor facility outage").
+- **Phase 2 core: survival systems** — scavenge rubble piles (1–3 scrap/fabric
+  per scavenge, 60s per-pile cooldown), crowbar combat, and hostiles: three
+  server-built infected rigs chase within 55 studs and attack (12 dmg on a 1.2s
+  cooldown); defeating one pays cash/XP and can drop medical supplies.
+- **Phase 2 core: the fall begins** — chapter 2 of the intro campaign
+  (scavenge ×3 → defeat an infected → barricade Apartment 3B with 4 scrap).
+  Entering chapter 2 fires the EMERGENCY BROADCAST world reaction: the news
+  headline swaps, night falls (ClockTime 19.8) and fog closes in.
+- **Inventory** — scrap/fabric/medical counts persist in the profile and show
+  in the HUD (server-awarded only).
 
 ## Controls
 
@@ -48,6 +58,7 @@ warn in the output).
 | E (near prompt) | Take contract / Pick up package / Open shop or home console / Talk |
 | WASD while seated | Drive van (arrow keys/WASD, Space to brake) |
 | DELIVER PACKAGE button | Deliver when at the target beacon |
+| Click (Crowbar equipped) | Swing at infected (7-stud range, must face target) |
 
 ## Repo layout
 
@@ -63,7 +74,8 @@ src/
     Bootstrap.server.lua       -- service boot order + golden-hour lighting
     Services/                  -- DataService, EconomyService, CampaignService,
                                -- ContractService, DialogueService, HomeService,
-                               -- MissionService, ShopService, VehicleService
+                               -- MissionService, ShopService, VehicleService,
+                               -- SurvivalService, InfectedService
   StarterPlayer/StarterPlayerScripts/  -- UIKit + HUD/dialogue/shop/home clients
 build_place.py                -- packs src/ -> build/DistrictsAfterlight.rbxlx
 ```
@@ -87,6 +99,9 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 - **Phase 1**: new player earns cash, completes a contract, customizes
   something (jacket/wrap/furniture), rejoin keeps progress. Intro mission
   walk-through ends with the news screen flipping to the outage headline.
+- **Phase 2**: finish chapter 1 → emergency broadcast + darkness → scavenge
+  3 piles → crowbar-kill an infected → barricade Apartment 3B → chapter 2
+  complete toast. Materials persist through rejoin.
 
 ## Known first-run notes
 
@@ -95,9 +110,10 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 - Furniture spawns into a shared showcase home (prototype simplification).
 - DataStores only persist in published experiences with API access enabled.
 
-## Roadmap (blueprint phases 2-8, not yet built)
+## Roadmap (remaining phases)
 
-Phase 2 outbreak campaign → Phase 3 heroes/combat → Phase 4 settlement +
-production → Phase 5 clans/missions → Phase 6 territory/alliances →
-Phase 7 live ops → Phase 8 monetization. The service skeleton (Net registry,
-campaign flags, mission tracker) is designed to absorb these without rewrites.
+Phase 2 core is shipped (see above) → Phase 3 heroes/combat progression →
+Phase 4 settlement + production → Phase 5 clans/missions → Phase 6 territory/
+alliances → Phase 7 live ops → Phase 8 monetization. The service skeleton
+(Net registry, campaign flags, mission tracker) is designed to absorb these
+without rewrites.

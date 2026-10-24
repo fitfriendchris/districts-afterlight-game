@@ -48,7 +48,8 @@ local function defaultData()
 		Version = 1,
 		Cash = EconomyConfig.BASE_STARTING_CASH,
 		XP = 0,
-		Stats = { Deliveries = 0, Pickups = 0, ContractsDone = 0, LastContractAt = 0 },
+		Inventory = { Scrap = 0, Fabric = 0, Medical = 0 },
+		Stats = { Deliveries = 0, Pickups = 0, ContractsDone = 0, LastContractAt = 0, Scavenges = 0, InfectedDefeated = 0, Fortified = 0 },
 		Campaign = { Flags = {} },
 		Missions = { INTRO = { Step = 0, Progress = 0 } },
 		Contract = { Active = nil },
@@ -86,6 +87,7 @@ function DataService.sync(player: Player)
 			HasPackage = data.Contract.Active.HasPackage,
 		} or nil,
 		Cosmetics = data.Cosmetics,
+		Inventory = data.Inventory,
 		Home = { Furniture = data.Home.Furniture },
 		Flags = data.Campaign.Flags,
 	})

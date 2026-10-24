@@ -16,10 +16,11 @@ gui.DisplayOrder = 5
 
 local cashLabel = UIKit.label(frame, "Cash: $250", UDim2.new(1, -16, 0, 24), UDim2.fromOffset(12, 8), 20, Color3.fromRGB(150, 235, 150))
 local levelLabel = UIKit.label(frame, "Level 1", UDim2.new(1, -16, 0, 18), UDim2.fromOffset(12, 34), 15, Color3.fromRGB(200, 210, 235))
+local suppliesLabel = UIKit.label(frame, "Scrap 0 ·  Fabric 0 ·  Meds 0", UDim2.new(1, -16, 0, 16), UDim2.fromOffset(12, 56), 13, Color3.fromRGB(160, 200, 168))
 
 local xpBack = Instance.new("Frame")
 xpBack.Size = UDim2.new(1, -24, 0, 8)
-xpBack.Position = UDim2.fromOffset(12, 62)
+xpBack.Position = UDim2.fromOffset(12, 76)
 xpBack.BackgroundColor3 = Color3.fromRGB(40, 44, 54)
 xpBack.BorderSizePixel = 0
 xpBack.Parent = frame
@@ -95,6 +96,8 @@ Net.event("PROFILE_SYNC").OnClientEvent:Connect(function(profile)
 	levelLabel.Text = ("Level %d  •  XP %d"):format(level, profile.XP or 0)
 	local frac = ProgressionConfig.xpProgress(level, profile.XP or 0)
 	xpFill.Size = UDim2.fromScale(frac, 1)
+	local inv = profile.Inventory or {}
+	suppliesLabel.Text = ("Scrap %d ·  Fabric %d ·  Meds %d"):format(inv.Scrap or 0, inv.Fabric or 0, inv.Medical or 0)
 	if profile.Contract and profile.Contract.HasPackage then
 		setDeliverVisible(true, profile.Contract.Target)
 	else

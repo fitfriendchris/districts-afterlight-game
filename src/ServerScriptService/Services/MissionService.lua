@@ -12,10 +12,20 @@ local CampaignService = require(script.Parent.CampaignService)
 local DialogueService = require(script.Parent.DialogueService)
 local ContractService = require(script.Parent.ContractService)
 local HomeService = require(script.Parent.HomeService)
+local SurvivalService = require(script.Parent.SurvivalService)
+local InfectedService = require(script.Parent.InfectedService)
 
 local MissionService = {}
 
 local DELIVERIES_REQUIRED = MissionDefinitions.DELIVERIES_REQUIRED
+
+-- (mission counter field on the profile, step id) pairs that display a counter
+local COUNTER_FIELDS = {
+	DO_DELIVERIES = "Progress",
+	SCAVENGE = "Scavenged",
+	FIGHT_INFECTED = "Kills",
+	FORTIFY_SAFEHOUSE = "Fortified",
+}
 
 local function pushObjective(player: Player)
 	local data = DataService.get(player)
@@ -29,9 +39,11 @@ local function pushObjective(player: Player)
 		title = MissionDefinitions.INTRO_TITLE,
 		text = step.text,
 	}
-	if step.id == "DO_DELIVERIES" then
-		payload.progress = math.min(m.Progress or 0, DELIVERIES_REQUIRED)
-		payload.max = DELIVERIES_REQUIRED
+	local field = COUNTER_FIELDS[step.id]
+	if field then
+		local need = MissionDefinitions.REQUIREMENTS[step.id] or DELIVERIES_REQUIRED
+		payload.progress = math.min(m[field] or 0, need)
+		payload.max = need
 	end
 	Net.fireTo(player, "OBJECTIVE_SYNC", payload)
 end
@@ -61,6 +73,22 @@ local function recompute(player: Player)
 		CampaignService.setFlag(player, "phase1_done")
 	end
 
+	-- Chapter 2: surviving the fall ------------------------------------------------
+	-- Step 4 (SCAVENGE) also catches legacy saves that already finished Phase 1 --
+	-- setFlag is idempotent, so the emergency broadcast fires exactly once.
+	if m.step == 4 then
+		CampaignService.setFlag(player, "outbreak_started")
+	end
+	if m.step == 4 and (m.Scavenged or 0) >= (MissionDefinitions.REQUIREMENTS.SCAVENGE or 3) then
+		m.step = 5
+	end
+	if m.step == 5 and (m.Kills or 0) >= (MissionDefinitions.REQUIREMENTS.FIGHT_INFECTED or 1) then
+		m.step = 6
+	end
+	if m.step == 6 and (m.Fortified or 0) >= (MissionDefinitions.REQUIREMENTS.FORTIFY_SAFEHOUSE or 1) then
+		m.step = 7
+	end
+
 	DataService.markDirty(player)
 	DataService.sync(player)
 	pushObjective(player)
@@ -74,6 +102,45 @@ local function onDelivered(player: Player)
 	if data.Missions.INTRO.step == 1 then
 		DataService.update(player, function(d)
 			d.Missions.INTRO.Progress = (d.Missions.INTRO.Progress or 0) + 1
+		end)
+	end
+	recompute(player)
+end
+
+local function onScavenged(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	if data.Missions.INTRO.step == 4 then
+		DataService.update(player, function(d)
+			d.Missions.INTRO.Scavenged = (d.Missions.INTRO.Scavenged or 0) + 1
+		end)
+	end
+	recompute(player)
+end
+
+local function onInfectedDefeated(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	if data.Missions.INTRO.step == 5 then
+		DataService.update(player, function(d)
+			d.Missions.INTRO.Kills = (d.Missions.INTRO.Kills or 0) + 1
+		end)
+	end
+	recompute(player)
+end
+
+local function onFortified(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	if data.Missions.INTRO.step == 6 then
+		DataService.update(player, function(d)
+			d.Missions.INTRO.Fortified = (d.Missions.INTRO.Fortified or 0) + 1
 		end)
 	end
 	recompute(player)
@@ -93,6 +160,9 @@ function MissionService.Init()
 	HomeService.Events.ItemBought:Connect(function(player)
 		recompute(player)
 	end)
+	SurvivalService.Events.Scavenged:Connect(onScavenged)
+	InfectedService.Events.Defeated:Connect(onInfectedDefeated)
+	SurvivalService.Events.Fortified:Connect(onFortified)
 
 	-- players already loaded before Init, and every future load
 	local function onLoaded(player)
