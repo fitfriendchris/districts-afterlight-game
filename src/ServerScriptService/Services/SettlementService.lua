@@ -30,14 +30,13 @@ SettlementService.Events = {
 local rigsByPlayer: { [Player]: { [number]: any } } = {}
 
 -- declared before definitions (analyzer: early capture must not bind nil globals)
-local structsByPad
 local onCollect
 local onUpgrade
 local setRigText
 type Rig = { model: Model, text: TextLabel, upgrade: ProximityPrompt }
 local structsByPad: (Player, number, any?) -> (Struct?)
 
-function structsByPad(player: Player, padIndex: number, data: any?)
+structsByPad = function(player: Player, padIndex: number, data: any?): Struct?
 	local list = (data and data.Settlement) and data.Settlement.Structures or nil
 	if not list then
 		local d = DataService.get(player)
@@ -187,11 +186,11 @@ function SettlementService.buildStructure(player: Player, padIndex: number, type
 		return false
 	end
 	if structsByPad(player, padIndex) then
-		Net.event("TOAST"):FireClient(player, "That pad is occupied")
+		Net.event("TOAST"):FireClient(player, { text = "That pad is occupied", duration = 3 })
 		return false
 	end
 	if not trySpend(player, def.Cost) then
-		Net.event("TOAST"):FireClient(player, "Not enough materials for " .. def.Name)
+		Net.event("TOAST"):FireClient(player, { text = "Not enough materials for " .. def.Name, duration = 3 })
 		return false
 	end
 	rigsByPlayer[player] = rigsByPlayer[player] or {}
@@ -221,77 +220,78 @@ function SettlementService.buildStructure(player: Player, padIndex: number, type
 end
 
 onCollect = function(player: Player, padIndex: number)
+	-- 0.615 nonstrict: unknown Player in the signature defeats call-result nil narrowing;
+	-- nested `if struct ~= nil` is the narrowing-safe form
 	local struct = structsByPad(player, padIndex)
-	if not struct then
-		return
-	end
-	local def = cfg.STRUCTURES[struct.Type]
-	if not def.Produces then
-		return
-	end
-	local whole = math.floor(struct.Bank)
-	if whole < 1 then
-		return
-	end
-	local amount = def.Produces.amount * whole
-	DataService.update(player, function(d)
-		if def.Produces.kind == "Cash" then
-			d.Cash += amount
-		else
-			d.Inventory[def.Produces.item] = (d.Inventory[def.Produces.item] or 0) + amount
+	if struct ~= nil then
+		local def = cfg.STRUCTURES[struct.Type]
+		if not def.Produces then
+			return
 		end
-		d.Stats.Collected = (d.Stats.Collected or 0) + 1
-		local s = structsByPad(player, padIndex, d)
-		if s then
-			s.Bank -= whole
-			s.LastTick = os.clock()
+		local whole = math.floor(struct.Bank)
+		if whole < 1 then
+			return
 		end
-	end)
-	local gain = def.Produces.kind == "Cash" and ("$%d collected"):format(amount) or ("+%d %s"):format(amount, def.Produces.item)
-	Net.event("TOAST"):FireClient(player, gain)
-	local updated = structsByPad(player, padIndex)
-	if updated then
-		setRigText(player, padIndex, updated)
+		local amount = def.Produces.amount * whole
+		DataService.update(player, function(d)
+			if def.Produces.kind == "Cash" then
+				d.Cash += amount
+			else
+				d.Inventory[def.Produces.item] = (d.Inventory[def.Produces.item] or 0) + amount
+			end
+			d.Stats.Collected = (d.Stats.Collected or 0) + 1
+			local s = structsByPad(player, padIndex, d)
+			if s then
+				s.Bank -= whole
+				s.LastTick = os.clock()
+			end
+		end)
+		local gain = def.Produces.kind == "Cash" and ("$%d collected"):format(amount) or ("+%d %s"):format(amount, def.Produces.item)
+		Net.event("TOAST"):FireClient(player, { text = gain, duration = 3 })
+		local updated = structsByPad(player, padIndex)
+		if updated then
+			setRigText(player, padIndex, updated)
+		end
+		SettlementService.Events.YieldCollected:Fire(player, struct.Type, amount)
+		SettlementService.sync(player)
 	end
-	SettlementService.Events.YieldCollected:Fire(player, struct.Type, amount)
-	SettlementService.sync(player)
 end
 
 onUpgrade = function(player: Player, padIndex: number)
 	local struct = structsByPad(player, padIndex)
-	if not struct then
-		return
-	end
-	if struct.Level >= cfg.MAX_LEVEL then
-		Net.event("TOAST"):FireClient(player, "Already max level")
-		return
-	end
-	local def = cfg.STRUCTURES[struct.Type]
-	local mult = cfg.UPGRADE_MULT[struct.Level + 1]
-	local costs: { [string]: number } = {}
-	for item, amount in pairs(def.Cost) do
-		costs[item] = math.floor(amount * mult)
-	end
-	if not trySpend(player, costs) then
-		Net.event("TOAST"):FireClient(player, "Not enough materials to upgrade")
-		return
-	end
-	DataService.update(player, function(d)
-		local s = structsByPad(player, padIndex, d)
-		if s then
-			s.Level += 1
+	if struct ~= nil then
+		if struct.Level >= cfg.MAX_LEVEL then
+			Net.event("TOAST"):FireClient(player, { text = "Already max level", duration = 3 })
+			return
 		end
-	end)
-	local updated = structsByPad(player, padIndex)
-	if updated then
-		setRigText(player, padIndex, updated)
+		local def = cfg.STRUCTURES[struct.Type]
+		local mult = cfg.UPGRADE_MULT[struct.Level + 1]
+		local costs: { [string]: number } = {}
+		for item, amount in pairs(def.Cost) do
+			costs[item] = math.floor(amount * mult)
+		end
+		if not trySpend(player, costs) then
+			Net.event("TOAST"):FireClient(player, { text = "Not enough materials to upgrade", duration = 3 })
+			return
+		end
+		DataService.update(player, function(d)
+			local s = structsByPad(player, padIndex, d)
+			if s then
+				s.Level += 1
+			end
+		end)
+		local updated = structsByPad(player, padIndex)
+		if updated then
+			setRigText(player, padIndex, updated)
+		end
+		EconomyService.award(player, 0, cfg.UPGRADE_XP, "settlement_upgrade")
+		SettlementService.sync(player)
 	end
-	EconomyService.award(player, 0, cfg.UPGRADE_XP, "settlement_upgrade")
-	SettlementService.sync(player)
 end
 
 function SettlementService.demolish(player: Player, padIndex: number)
-	local def = cfg.STRUCTURES[structsByPad(player, padIndex) and structsByPad(player, padIndex).Type or ""]
+	local current = structsByPad(player, padIndex)
+	local def = cfg.STRUCTURES[current and current.Type or ""]
 	if not def then
 		return false
 	end

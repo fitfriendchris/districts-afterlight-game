@@ -15,6 +15,7 @@ local HomeService = require(script.Parent.HomeService)
 local SurvivalService = require(script.Parent.SurvivalService)
 local InfectedService = require(script.Parent.InfectedService)
 local SettlementService = require(script.Parent.SettlementService)
+local ClanService = require(script.Parent.ClanService)
 
 local MissionService = {}
 
@@ -28,6 +29,8 @@ local COUNTER_FIELDS = {
 	FORTIFY_SAFEHOUSE = "Fortified",
 	BUILD_STRUCTURE = "StructuresBuilt",
 	COLLECT_YIELD = "Collected",
+	JOIN_CLAN = "Joined",
+	CLAN_CONTRACT = "GroupDone",
 }
 
 local function pushObjective(player: Player)
@@ -101,6 +104,17 @@ local function recompute(player: Player)
 	end
 	if m.step == 8 and (m.Collected or 0) >= (MissionDefinitions.REQUIREMENTS.COLLECT_YIELD or 1) then
 		m.step = 9
+	end
+
+	-- Chapter 4: clans --------------------------------------------------------------
+	if m.step == 9 then
+		CampaignService.setFlag(player, "clan_started")
+	end
+	if m.step == 9 and (m.Joined or 0) >= (MissionDefinitions.REQUIREMENTS.JOIN_CLAN or 1) then
+		m.step = 10
+	end
+	if m.step == 10 and (m.GroupDone or 0) >= (MissionDefinitions.REQUIREMENTS.CLAN_CONTRACT or 1) then
+		m.step = 11
 	end
 
 	DataService.markDirty(player)
@@ -186,6 +200,32 @@ local function onYieldCollected(player: Player)
 	recompute(player)
 end
 
+local function onClanJoined(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	if data.Missions.INTRO.step == 9 then
+		DataService.update(player, function(d)
+			d.Missions.INTRO.Joined = (d.Missions.INTRO.Joined or 0) + 1
+		end)
+	end
+	recompute(player)
+end
+
+local function onClanContractDone(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	if data.Missions.INTRO.step == 10 then
+		DataService.update(player, function(d)
+			d.Missions.INTRO.GroupDone = (d.Missions.INTRO.GroupDone or 0) + 1
+		end)
+	end
+	recompute(player)
+end
+
 function MissionService.Init()
 	DialogueService.Events.MarcusTalked:Connect(function(player)
 		recompute(player)
@@ -205,6 +245,8 @@ function MissionService.Init()
 	SurvivalService.Events.Fortified:Connect(onFortified)
 	SettlementService.Events.StructureBuilt:Connect(onStructureBuilt)
 	SettlementService.Events.YieldCollected:Connect(onYieldCollected)
+	ClanService.Events.ClanChanged:Connect(onClanJoined)
+	ClanService.Events.ClanContractDone:Connect(onClanContractDone)
 
 	-- players already loaded before Init, and every future load
 	local function onLoaded(player)

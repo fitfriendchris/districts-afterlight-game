@@ -115,6 +115,9 @@ Net.event("OBJECTIVE_SYNC").OnClientEvent:Connect(function(payload)
 end)
 
 Net.event("TOAST").OnClientEvent:Connect(function(payload)
+	if typeof(payload) == "string" then
+		payload = { text = payload }
+	end
 	toast(payload.text or "", payload.duration or 3)
 end)
 

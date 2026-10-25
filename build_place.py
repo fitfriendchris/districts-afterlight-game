@@ -525,6 +525,14 @@ def build_props():
     return props
 
 
+def build_clan_hall(hx, hz):
+    """Phase 5: clan hall board near the plaza."""
+    pole = part("ClanPole", (0.5, 3.6, 0.5), (12, 1.8, -26), color=(96, 84, 66), material="Wood")
+    board = part("ClanBoard", (4.2, 2.0, 0.3), (12, 2.9, -26), yaw=195, color=(74, 92, 130), material="Metal")
+    surface_text(board, "CLAN HALL", headline_name="Headline", sub="Found • Join • Group contracts — press E")
+    return model("ClanHall", pole, board)
+
+
 def build_settlement_board(hx, hz):
     """Phase 4: settlement board sign at the yard entrance."""
     pole = part("BoardPole", (0.4, 3.0, 0.4), (hx + 8, 1.5, hz - 22), color=(84, 70, 56), material="Wood")
@@ -596,6 +604,7 @@ def build_world():
         build_hero_kiosk(),
         build_settlement_pads(-60, -8),
         build_settlement_board(-60, -8),
+        build_clan_hall(-60, -8),
         model("Vans", build_van("Van1", 46, -8), build_van("Van2", 46, 16)),
         model("Props", *build_props()),
     )
@@ -659,6 +668,7 @@ def write_world_layout(home_interior):
     for (x, y, z) in BUILD_PADS:
         lines.append("\t\t{ x = %s, y = %s, z = %s }," % (num(x), num(y), num(z)))
     lines.append("\t},")
+    lines.append("\tCLAN_HALL = { x = 12.0, y = 1.8, z = -26.0 },")
     lines.append("}")
     with open(WORLD_LAYOUT, "w") as f:
         f.write("\n".join(lines) + "\n")

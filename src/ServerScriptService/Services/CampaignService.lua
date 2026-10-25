@@ -68,6 +68,18 @@ local WORLD_REACTIONS = {
 		lighting.FogEnd = 1400
 		lighting.FogColor = Color3.fromRGB(200, 208, 222)
 	end,
+
+	-- Chapter 4 begins: the clans era — banners are rising in Meridian
+	clan_started = function()
+		if reacted.clan_started then
+			return
+		end
+		reacted.clan_started = true
+		setNewsHeadline("CLAN CHARTERS PILE UP — DISTRICTS FORMING ALLIANCES")
+		local lighting = game:GetService("Lighting")
+		lighting.ClockTime = 15.4
+		lighting.Brightness = 2.2
+	end,
 }
 
 function CampaignService.hasFlag(player: Player, flag: string): boolean

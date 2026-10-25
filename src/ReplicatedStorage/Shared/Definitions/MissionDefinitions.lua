@@ -15,7 +15,9 @@ MissionDefinitions.STEPS = {
 	{ id = "FORTIFY_SAFEHOUSE", text = "Barricade the Apartment 3B entrance (needs 4 scrap)" },
 	{ id = "BUILD_STRUCTURE", text = "Build your first settlement structure (foundation pads in the yard behind Apartment 3B)" },
 	{ id = "COLLECT_YIELD", text = "Collect a yield from one of your settlement structures" },
-	{ id = "DONE",          text = "Chapter 3 complete — Meridian is rebuilding. More to come." },
+	{ id = "JOIN_CLAN", text = "Found or join a clan at the Clan Hall (plaza) — survive together" },
+	{ id = "CLAN_CONTRACT", text = "Complete a group contract with your clan (members' deliveries count together)" },
+	{ id = "DONE",          text = "Chapter 4 complete — the districts answer to their clans now. More to come." },
 }
 
 -- Steps that show a numeric progress counter (id -> required amount)
@@ -26,6 +28,8 @@ MissionDefinitions.REQUIREMENTS = {
 	FORTIFY_SAFEHOUSE = 1,
 	BUILD_STRUCTURE = 1,
 	COLLECT_YIELD = 1,
+	JOIN_CLAN = 1,
+	CLAN_CONTRACT = 1,
 }
 
 MissionDefinitions.DELIVERIES_REQUIRED = 2

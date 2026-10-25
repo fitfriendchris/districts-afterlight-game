@@ -1,4 +1,4 @@
-# Districts: Afterlight — Meridian Open-World Slice (Phases 0–4)
+# Districts: Afterlight — Meridian Open-World Slice (Phases 0–5)
 
 Roblox open-world roleplay / zombie-survival game, built from the complete
 design blueprint. This repo currently implements **Phase 0 (foundation) and
@@ -74,6 +74,15 @@ Foundation pads sit in the yard behind Apartment 3B (a **Settlement Board**, pre
 - **Banks accrue offline** (capped at 3 intervals, or more with Storage crates) and collect on demand — XP for build/collect/upgrade is server-awarded
 - **Demolish refunds 30%** of base cost. All placement/cost/production math is server-side; builds persist in the profile and respawn on rejoin
 
+## Clans (Phase 5)
+The **Clan Hall board** stands by the plaza (`CLAN_HALL` in WorldLayout, press **E**) — found a clan ($500 + 20 scrap), join one, or manage yours.
+
+- **Cap 8 members**; clan names are unique and 3–20 chars, tags 2–4 chars; leave/rejoin has a 10s anti-spam cooldown
+- **Clan bank**: members donate $50–$5000 at a time; the bank persists server-side
+- **Group contracts**: any member starts one (30s board cooldown) — clan must deliver **2 packages** (any member's deliveries count); success banks **+$260**, the delivering member pockets **+$100 +20 XP**; other members get a completion toast
+- **Clans persist** in a dedicated DataStore (`DistrictsAfterlight_Clan_v1`, saved every 120s + BindToClose) and survive server restarts; dissolving frees the name for reuse
+- Chapter-4 campaign: join a clan → complete a group contract → "CLAN CHARTERS PILE UP" headline
+
 ## Controls
 
 | Input | Action |
@@ -89,18 +98,22 @@ Foundation pads sit in the yard behind Apartment 3B (a **Settlement Board**, pre
 ```
 src/
   ReplicatedStorage/
-    Net.lua                    -- central remote registry (8 remotes)
+    Net.lua                    -- central remote registry (14 remotes)
     Shared/WorldLayout.lua     -- GENERATED interaction coordinates (do not hand-edit)
-    Shared/Configs/            -- EconomyConfig, ProgressionConfig
-    Shared/Definitions/        -- ItemDefinitions, HomeDefinitions, MissionDefinitions
+    Shared/Configs/            -- EconomyConfig, ProgressionConfig, SurvivalConfig,
+                               -- HeroConfig, SettlementConfig, ClanConfig
+    Shared/Definitions/        -- ItemDefinitions, HomeDefinitions, MissionDefinitions,
+                               -- HeroDefinitions
     Shared/Util/Signal.lua
   ServerScriptService/
     Bootstrap.server.lua       -- service boot order + golden-hour lighting
     Services/                  -- DataService, EconomyService, CampaignService,
                                -- ContractService, DialogueService, HomeService,
                                -- MissionService, ShopService, VehicleService,
-                               -- SurvivalService, InfectedService
-  StarterPlayer/StarterPlayerScripts/  -- UIKit + HUD/dialogue/shop/home clients
+                               -- SurvivalService, InfectedService, HeroService,
+                               -- SettlementService, ClanService
+  StarterPlayer/StarterPlayerScripts/  -- UIKit + HUD/dialogue/shop/home/hero/
+                               -- settlement/clan clients
 build_place.py                -- packs src/ -> build/DistrictsAfterlight.rbxlx
 ```
 
@@ -133,6 +146,10 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
   build a Workbench on pad 1 with scavenge materials → wait ~2 min → collect 2
   scrap → upgrade it → rejoin: structures, levels and banks persist. Chapter-3
   mission advances on build + collect and the rebuild headline breaks.
+- **Phase 5**: found a clan at the Clan Hall board → donate to the bank →
+  start a group contract → deliver 2 packages (either member) → bank +$260/
+  deliverer +$100 → rejoin: clan, bank and donation totals persist; a
+  dissolved founder leaves and the clan dissolves, freeing the name.
 
 ## Known first-run notes
 
@@ -143,8 +160,8 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 
 ## Roadmap (remaining phases)
 
-Phase 4 settlement is shipped (see above) → Phase 5 clans/group missions →
-Phase 6 territory/alliances → Phase 7 live ops → Phase 8 monetization. The
+Phase 5 clans/group contracts are shipped (see above) → Phase 6
+territory/alliances → Phase 7 live ops → Phase 8 monetization. The
 service skeleton
 (Net registry, campaign flags, mission tracker) is designed to absorb these
 without rewrites.

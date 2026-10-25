@@ -21,6 +21,8 @@ local REMOTES = {
 	"HERO_SYNC",        -- server -> client: hero roster snapshot + Heroes Hall open (Phase 3)
 	"SETTLEMENT_ACT",   -- client -> server: Build|Collect|Upgrade|Demolish (Phase 4)
 	"SETTLEMENT_SYNC",  -- server -> client: settlement structures snapshot (Phase 4)
+	"CLAN_ACT",     -- client -> server: Create|Join|Leave|Donate|Contract (Phase 5)
+	"CLAN_SYNC",    -- server -> client: clan snapshot + Clan Hall open (Phase 5)
 }
 
 local folder = nil

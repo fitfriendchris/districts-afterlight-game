@@ -49,13 +49,14 @@ local function defaultData()
 		Cash = EconomyConfig.BASE_STARTING_CASH,
 		XP = 0,
 		Inventory = { Scrap = 0, Fabric = 0, Medical = 0 },
-		Stats = { Deliveries = 0, Pickups = 0, ContractsDone = 0, LastContractAt = 0, Scavenges = 0, InfectedDefeated = 0, Fortified = 0, StructuresBuilt = 0, Collected = 0 },
+		Stats = { Deliveries = 0, Pickups = 0, ContractsDone = 0, LastContractAt = 0, Scavenges = 0, InfectedDefeated = 0, Fortified = 0, StructuresBuilt = 0, Collected = 0, ClanCreated = 0 },
 		Campaign = { Flags = {} },
 		Missions = { INTRO = { Step = 0, Progress = 0 } },
 		Contract = { Active = nil },
 		Cosmetics = { Owned = {}, Equipped = { JacketColor = "JK_CRIMSON" } },
 		Home = { Furniture = {} },
 		Settlement = { Structures = {} },
+		Clan = { Id = nil, Donated = 0 },
 		Settings = {},
 		Heroes = { Roster = {}, Active = {} },
 	}
@@ -93,6 +94,7 @@ function DataService.sync(player: Player)
 		Heroes = data.Heroes,
 		Home = { Furniture = data.Home.Furniture },
 		Settlement = data.Settlement,
+		Clan = { Id = data.Clan.Id, Donated = data.Clan.Donated },
 		Flags = data.Campaign.Flags,
 	})
 end
