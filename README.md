@@ -1,4 +1,4 @@
-# Districts: Afterlight — Meridian Open-World Slice (Phases 0–6)
+# Districts: Afterlight — Meridian Open-World Slice (Phases 0–7)
 
 Roblox open-world roleplay / zombie-survival game, built from the complete
 design blueprint. This repo currently implements **Phase 0 (foundation) and
@@ -92,6 +92,15 @@ Three zones are worth fighting over — **Meridian Plaza**, the **Courier Depot*
 - **Alliances**: clan founders offer/accept up to 2 ally clans (mutual offers auto-accept). Allies share zone bonuses and push captures faster; either founder can break a pact
 - Chapter-5 campaign: claim a zone → seal an alliance → "TERRITORY FLIPS HANDS" headline
 
+## Live Ops (Phase 7)
+A **community goal board** stands on the plaza edge and counts the district's day — deliveries
+and infected defeats together. Hitting **25 in one UTC day** pays **$50 + 1 scrap to everyone**
+(including late joiners), fires a news headline, and the board flips to "MET!".
+
+- **Daily streak**: your first join of each UTC day pays a streak reward — day 1 $60, +$15 per
+  consecutive day, capped at day 7 ($150 + 8 scrap + 2 medical). Miss a day and the streak resets
+- Rewards are server-validated and clamped; goal state persists in `DistrictsAfterlight_LiveOps_v1`
+
 ## Controls
 
 | Input | Action |
@@ -111,7 +120,7 @@ src/
     Shared/WorldLayout.lua     -- GENERATED interaction coordinates (do not hand-edit)
     Shared/Configs/            -- EconomyConfig, ProgressionConfig, SurvivalConfig,
                                -- HeroConfig, SettlementConfig, ClanConfig,
-                               -- TerritoryConfig
+                               -- TerritoryConfig, LiveOpsConfig
     Shared/Definitions/        -- ItemDefinitions, HomeDefinitions, MissionDefinitions,
                                -- HeroDefinitions
     Shared/Util/Signal.lua
@@ -121,7 +130,8 @@ src/
                                -- ContractService, DialogueService, HomeService,
                                -- MissionService, ShopService, VehicleService,
                                -- SurvivalService, InfectedService, HeroService,
-                               -- SettlementService, ClanService, TerritoryService
+                               -- SettlementService, ClanService, TerritoryService,
+                               -- LiveOpsService
   StarterPlayer/StarterPlayerScripts/  -- UIKit + HUD/dialogue/shop/home/hero/
                                -- settlement/clan clients
 build_place.py                -- packs src/ -> build/DistrictsAfterlight.rbxlx
@@ -164,6 +174,10 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
   bonus now applies (contract ×1.15 / pickup +$5 / yield +1) → founders
   exchange alliance offers → accept → allied capture + bonuses → rejoin:
   territory and alliances persist through the dedicated store.
+- **Phase 7**: join on consecutive days for a growing streak payout ($60→$150/
+  capped) → the community board counts every delivery and infected defeat →
+  25 in a UTC day pays the whole district → late joiners bank it too →
+  streaks and goal state persist.
 
 ## Known first-run notes
 
@@ -174,8 +188,8 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 
 ## Roadmap (remaining phases)
 
-Phase 6 territory + alliances are shipped (see above) → Phase 7 live ops →
-Phase 8 monetization. The
+Phase 7 live ops are shipped (see above) → Phase 8 monetization → final
+gap pass. The
 service skeleton
 (Net registry, campaign flags, mission tracker) is designed to absorb these
 without rewrites.

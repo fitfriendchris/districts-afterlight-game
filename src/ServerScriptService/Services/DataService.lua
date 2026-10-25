@@ -57,6 +57,7 @@ local function defaultData()
 		Home = { Furniture = {} },
 		Settlement = { Structures = {} },
 		Clan = { Id = nil, Donated = 0 },
+		LiveOps = { ClaimDay = nil, Streak = 0, GoalDay = nil },
 		Settings = {},
 		Heroes = { Roster = {}, Active = {} },
 	}

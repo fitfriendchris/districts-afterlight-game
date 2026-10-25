@@ -30,7 +30,7 @@ local ORDER = {
 	"HeroService",
 	"SettlementService",
 	"ContractService",
-	"ClanService", "TerritoryService",
+	"ClanService", "TerritoryService", "LiveOpsService",
 	"DialogueService",
 	"MissionService",
 }

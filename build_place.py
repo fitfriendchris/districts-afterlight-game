@@ -525,6 +525,14 @@ def build_props():
     return props
 
 
+def build_community_board():
+    """Phase 7: community goal sign on the plaza edge (LiveOpsService updates it)."""
+    pole = part("CommunityPole", (0.4, 3.0, 0.4), (-8, 1.5, -18), color=(84, 70, 56), material="Wood")
+    board = part("CommunityBoardPanel", (3.4, 1.6, 0.24), (-8, 2.7, -18), yaw=205, color=(120, 88, 60), material="Wood")
+    surface_text(board, "COMMUNITY GOAL 0/25", headline_name="Headline", sub="Deliveries + defenses count — everyone banks the reward")
+    return model("CommunityBoard", pole, board)
+
+
 def build_territory_flags():
     """Phase 6: zone banners — TerritoryService tints the banner by clan on capture."""
     banner_colors = {"PLAZA": (200, 200, 200), "DEPOT": (200, 200, 200), "YARD": (200, 200, 200)}
@@ -619,6 +627,7 @@ def build_world():
         build_settlement_board(-60, -8),
         build_clan_hall(-60, -8),
         build_territory_flags(),
+        build_community_board(),
         model("Vans", build_van("Van1", 46, -8), build_van("Van2", 46, 16)),
         model("Props", *build_props()),
     )
