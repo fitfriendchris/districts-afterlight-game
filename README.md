@@ -102,10 +102,13 @@ and infected defeats together. Hitting **25 in one UTC day** pays **$50 + 1 scra
 - Rewards are server-validated and clamped; goal state persists in `DistrictsAfterlight_LiveOps_v1`
 
 ## Monetization (Phase 8)
-A **Support Terminal** stands by the community board. After the game is
-published, enter the Roblox asset IDs in `MonetizationConfig` and the
-terminal comes alive — until then it politely says "Support options arrive
-after launch".
+A **Support Terminal** stands by the community board. It is LIVE — the game
+is published and the real Roblox asset IDs are wired into `MonetizationConfig`:
+
+- **Supporter Pass** (99 R$) — permanent +10% contract cash: pass `2053295760`
+- **Cash Cache** (75 R$) — $250 cash, repeatable: product `3722080498`
+- **Med Supplies Pack** (49 R$) — 5 medical + 20 scrap, repeatable: product
+  `3722080599`
 
 - **Developer products** flow through server-side `ProcessReceipt`: every
   receipt is recorded in the profile (rejoin/refund-recovery safe, one grant
@@ -208,12 +211,11 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 - **Phase 7**: join on consecutive days for a growing streak payout ($60→$150/
   capped) → the community board counts every delivery and infected defeat →
   25 in a UTC day pays the whole district → late joiners bank it too →
-  streaks and goal state persist..
-- **Phase 8**: press E at the support terminal before publication →
-  "options arrive after launch" notice (dormant) → after publishing, add
-  real Roblox product/pass IDs to MonetizationConfig → purchases process
+  streaks and goal state persist.
+- **Phase 8**: press E at the support terminal → the Supporter pass and both
+  dev products appear → purchases process
   server-side with recorded receipts → supporter payouts stack with
-  territory bonuses..
+  territory bonuses.
 - **Phase 9**: spawn in → golden-hour light with haze and graded color →
   fountain sparkles, depot dust, spawn-point smoke → lamps glow and breathe →
   every chapter keeps re-grading the world as the story flags fire.
@@ -227,8 +229,9 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 
 ## Roadmap (remaining phases)
 
-Phase 9 visual polish shipped (lighting/atmosphere/particles/neon breathing)
-→ publish → enter monetization asset IDs → the Support Terminal goes live. The
+Phases 0–9 shipped; universe `10772858049` published (place `126891347820651`,
+asset IDs wired, v3 upload live). Remaining: experience activation/settings
+polish (public toggle, icon, description assets) and live-ops tuning. The
 service skeleton
 (Net registry, campaign flags, mission tracker) is designed to absorb these
 without rewrites.
