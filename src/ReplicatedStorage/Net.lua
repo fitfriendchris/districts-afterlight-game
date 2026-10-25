@@ -19,6 +19,8 @@ local REMOTES = {
 	"HOME_ACT",         -- client -> server: Open|Buy
 	"HERO_ACT",         -- client -> server: Recruit|StarUp|Gear|SetSpec|Deploy (Phase 3)
 	"HERO_SYNC",        -- server -> client: hero roster snapshot + Heroes Hall open (Phase 3)
+	"SETTLEMENT_ACT",   -- client -> server: Build|Collect|Upgrade|Demolish (Phase 4)
+	"SETTLEMENT_SYNC",  -- server -> client: settlement structures snapshot (Phase 4)
 }
 
 local folder = nil

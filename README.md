@@ -1,4 +1,4 @@
-# Districts: Afterlight — Meridian Open-World Slice (Phase 0 + 1 + 2 core + 3 hero squad)
+# Districts: Afterlight — Meridian Open-World Slice (Phases 0–4)
 
 Roblox open-world roleplay / zombie-survival game, built from the complete
 design blueprint. This repo currently implements **Phase 0 (foundation) and
@@ -59,6 +59,21 @@ A kiosk by the plaza (`HERO_KIOSK` in WorldLayout, press **E**) opens the Heroes
 - **Deploy**: up to 2 armed allies fight alongside you server-side (`InfectedService` ally registry), respawn after 12s if dropped; Meditech Spec adds +20% medical drops from infected
 - Everything mutates `data.Heroes` via the Data service — recruits, stars and gear persist
 
+## Settlement (Phase 4)
+Foundation pads sit in the yard behind Apartment 3B (a **Settlement Board**, press **E**, opens the panel; the rig prompts on built structures work too).
+
+| Structure | Cost | Produces | Interval |
+|---|---|---|---|
+| Workbench | 8 Scrap · 4 Fabric | 2 Scrap | 120s |
+| Loom | 6 Scrap · 8 Fabric | 2 Fabric | 150s |
+| Generator | 12 Scrap | $30 | 90s |
+| Med Station | 8 Scrap · 5 Fabric · 1 Med | 1 Medical | 240s |
+| Storage Crate | 5 Scrap | +1 interval to every bank cap | passive |
+
+- **Levels 1–3**: upgrade costs 2×/3× the base cost; yields ×1.0/×1.6/×2.4
+- **Banks accrue offline** (capped at 3 intervals, or more with Storage crates) and collect on demand — XP for build/collect/upgrade is server-awarded
+- **Demolish refunds 30%** of base cost. All placement/cost/production math is server-side; builds persist in the profile and respawn on rejoin
+
 ## Controls
 
 | Input | Action |
@@ -114,6 +129,10 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 - **Phase 3**: press **E** at the Heroes Hall kiosk → recruit a hero (cash +
   materials leave the profile) → gear them → deploy → ally shoots infected →
   recall → rejoin keeps roster, stars and gear. Spec locks at ★5.
+- **Phase 4**: read the Settlement Board in the yard behind Apartment 3B →
+  build a Workbench on pad 1 with scavenge materials → wait ~2 min → collect 2
+  scrap → upgrade it → rejoin: structures, levels and banks persist. Chapter-3
+  mission advances on build + collect and the rebuild headline breaks.
 
 ## Known first-run notes
 
@@ -124,8 +143,8 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 
 ## Roadmap (remaining phases)
 
-Phase 3 hero squad is shipped (see above) → Phase 4 settlement + production →
-Phase 5 clans/missions → Phase 6 territory/alliances → Phase 7 live ops →
-Phase 8 monetization. The service skeleton
+Phase 4 settlement is shipped (see above) → Phase 5 clans/group missions →
+Phase 6 territory/alliances → Phase 7 live ops → Phase 8 monetization. The
+service skeleton
 (Net registry, campaign flags, mission tracker) is designed to absorb these
 without rewrites.

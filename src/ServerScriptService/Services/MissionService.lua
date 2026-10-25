@@ -14,6 +14,7 @@ local ContractService = require(script.Parent.ContractService)
 local HomeService = require(script.Parent.HomeService)
 local SurvivalService = require(script.Parent.SurvivalService)
 local InfectedService = require(script.Parent.InfectedService)
+local SettlementService = require(script.Parent.SettlementService)
 
 local MissionService = {}
 
@@ -25,6 +26,8 @@ local COUNTER_FIELDS = {
 	SCAVENGE = "Scavenged",
 	FIGHT_INFECTED = "Kills",
 	FORTIFY_SAFEHOUSE = "Fortified",
+	BUILD_STRUCTURE = "StructuresBuilt",
+	COLLECT_YIELD = "Collected",
 }
 
 local function pushObjective(player: Player)
@@ -89,6 +92,17 @@ local function recompute(player: Player)
 		m.step = 7
 	end
 
+	-- Chapter 3: rebuilding ------------------------------------------------------
+	if m.step == 7 then
+		CampaignService.setFlag(player, "rebuild_started")
+	end
+	if m.step == 7 and (m.StructuresBuilt or 0) >= (MissionDefinitions.REQUIREMENTS.BUILD_STRUCTURE or 1) then
+		m.step = 8
+	end
+	if m.step == 8 and (m.Collected or 0) >= (MissionDefinitions.REQUIREMENTS.COLLECT_YIELD or 1) then
+		m.step = 9
+	end
+
 	DataService.markDirty(player)
 	DataService.sync(player)
 	pushObjective(player)
@@ -146,6 +160,32 @@ local function onFortified(player: Player)
 	recompute(player)
 end
 
+local function onStructureBuilt(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	if data.Missions.INTRO.step == 7 then
+		DataService.update(player, function(d)
+			d.Missions.INTRO.StructuresBuilt = (d.Missions.INTRO.StructuresBuilt or 0) + 1
+		end)
+	end
+	recompute(player)
+end
+
+local function onYieldCollected(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	if data.Missions.INTRO.step == 8 then
+		DataService.update(player, function(d)
+			d.Missions.INTRO.Collected = (d.Missions.INTRO.Collected or 0) + 1
+		end)
+	end
+	recompute(player)
+end
+
 function MissionService.Init()
 	DialogueService.Events.MarcusTalked:Connect(function(player)
 		recompute(player)
@@ -163,6 +203,8 @@ function MissionService.Init()
 	SurvivalService.Events.Scavenged:Connect(onScavenged)
 	InfectedService.Events.Defeated:Connect(onInfectedDefeated)
 	SurvivalService.Events.Fortified:Connect(onFortified)
+	SettlementService.Events.StructureBuilt:Connect(onStructureBuilt)
+	SettlementService.Events.YieldCollected:Connect(onYieldCollected)
 
 	-- players already loaded before Init, and every future load
 	local function onLoaded(player)

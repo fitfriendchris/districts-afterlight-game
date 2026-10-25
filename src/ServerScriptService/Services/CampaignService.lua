@@ -54,6 +54,20 @@ local WORLD_REACTIONS = {
 		lighting.FogEnd = 520
 		lighting.FogColor = Color3.fromRGB(24, 26, 34)
 	end,
+
+	-- Chapter 3 begins: the rebuild — dawn breaks over the settlement
+	rebuild_started = function()
+		if reacted.rebuild_started then
+			return
+		end
+		reacted.rebuild_started = true
+		setNewsHeadline("SETTLEMENT CHARTER SIGNED — MERIDIAN BEGINS TO REBUILD")
+		local lighting = game:GetService("Lighting")
+		lighting.ClockTime = 14.2
+		lighting.Brightness = 2.6
+		lighting.FogEnd = 1400
+		lighting.FogColor = Color3.fromRGB(200, 208, 222)
+	end,
 }
 
 function CampaignService.hasFlag(player: Player, flag: string): boolean

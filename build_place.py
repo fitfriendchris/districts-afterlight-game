@@ -525,6 +525,14 @@ def build_props():
     return props
 
 
+def build_settlement_board(hx, hz):
+    """Phase 4: settlement board sign at the yard entrance."""
+    pole = part("BoardPole", (0.4, 3.0, 0.4), (hx + 8, 1.5, hz - 22), color=(84, 70, 56), material="Wood")
+    board = part("Board", (3.6, 1.5, 0.24), (hx + 8, 2.6, hz - 22), color=(132, 108, 78), material="Wood")
+    surface_text(board, "SETTLEMENT BOARD", headline_name="Headline", sub="Foundations — press E")
+    return model("SettlementBoard", pole, board)
+
+
 def build_hero_kiosk():
     """Phase 3: Heroes Hall recruitment kiosk in the plaza."""
     kiosk = part("HeroKiosk", (2.6, 3.4, 1.3), (16, 1.83, -17), yaw=205, color=(52, 60, 86), material="Metal")
@@ -586,6 +594,8 @@ def build_world():
         build_targets(),
         build_phase2_nodes(-60, -8),
         build_hero_kiosk(),
+        build_settlement_pads(-60, -8),
+        build_settlement_board(-60, -8),
         model("Vans", build_van("Van1", 46, -8), build_van("Van2", 46, 16)),
         model("Props", *build_props()),
     )
@@ -603,6 +613,23 @@ DELIVERY_TARGETS = [
 PACKAGE_DEPOT = (20.0, 1.9, -12.0)
 RUBBLE_PILES = [(34.0, 0.8, -52.0), (-44.0, 0.8, -48.0), (66.0, 0.8, -28.0)]
 INFECTED_SPAWNS = [(8.0, 3.0, -64.0), (-30.0, 3.0, -76.0), (54.0, 3.0, -52.0)]
+# Phase 4: settlement foundation pads — offsets from the home lot (north yard)
+PAD_OFFSETS = [(-6.0, -30.0), (2.0, -30.0), (-6.0, -38.0), (2.0, -38.0)]
+BUILD_PADS: list = []  # filled by build_settlement_pads()
+
+
+def build_settlement_pads(hx, hz):
+    """Phase 4: four foundation pads in the yard behind the home lot."""
+    pads = []
+    for i, (dx, dz) in enumerate(PAD_OFFSETS):
+        idx = i + 1
+        x, z = hx + dx, hz + dz
+        pad = part("Pad%d" % idx, (4.6, 0.24, 4.6), (x, 0.12, z), color=(96, 100, 108), material="Concrete")
+        outline = part("Pad%dOutline" % idx, (5.6, 0.06, 5.6), (x, 0.035, z), color=(64, 68, 76), material="Concrete")
+        pads.append(pad)
+        pads.append(outline)
+        BUILD_PADS.append((x, 0.24, z))
+    return model("SettlementPads", *pads)
 
 
 def write_world_layout(home_interior):
@@ -628,6 +655,10 @@ def write_world_layout(home_interior):
         lines.append("\t\t{ x = %s, y = %s, z = %s }," % (num(x), num(y), num(z)))
     lines.append("\t},")
     lines.append("\tHERO_KIOSK = { x = 16.0, y = 1.83, z = -17.0 },")
+    lines.append("\tBUILD_PADS = {")
+    for (x, y, z) in BUILD_PADS:
+        lines.append("\t\t{ x = %s, y = %s, z = %s }," % (num(x), num(y), num(z)))
+    lines.append("\t},")
     lines.append("}")
     with open(WORLD_LAYOUT, "w") as f:
         f.write("\n".join(lines) + "\n")
