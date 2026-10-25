@@ -29,6 +29,11 @@ local function setNewsHeadline(text: string)
 	end)
 end
 
+-- public hook for other services (territory captures, alliance headlines)
+function CampaignService.announce(text: string)
+	setNewsHeadline(text)
+end
+
 local WORLD_REACTIONS = {
 	phase1_done = function()
 		if reacted.phase1_done then
@@ -69,6 +74,18 @@ local WORLD_REACTIONS = {
 		lighting.FogColor = Color3.fromRGB(200, 208, 222)
 	end,
 
+	-- Territory flips hands: the war for Meridian is on
+	territory_claimed = function()
+		if reacted.territory_claimed then
+			return
+		end
+		reacted.territory_claimed = true
+		setNewsHeadline("TERRITORY FLIPS HANDS — THE WAR FOR MERIDIAN IS ON")
+		local lighting = game:GetService("Lighting")
+		lighting.ClockTime = 16.0
+		lighting.Brightness = 2.0
+	end,
+
 	-- Chapter 4 begins: the clans era — banners are rising in Meridian
 	clan_started = function()
 		if reacted.clan_started then
@@ -79,6 +96,15 @@ local WORLD_REACTIONS = {
 		local lighting = game:GetService("Lighting")
 		lighting.ClockTime = 15.4
 		lighting.Brightness = 2.2
+	end,
+
+	-- A pact sealed: the districts watch who stands with whom
+	alliance_formed = function()
+		if reacted.alliance_formed then
+			return
+		end
+		reacted.alliance_formed = true
+		setNewsHeadline("PACT SEALED — WHICH DISTRICTS STAND TOGETHER?")
 	end,
 }
 

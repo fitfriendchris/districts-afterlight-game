@@ -23,6 +23,9 @@ local ClanConfig = {
 	},
 
 	SAVE_INTERVAL = 120,
+
+	-- Phase 6: alliances
+	ALLY_MAX = 2, -- allied clans a clan can hold
 }
 
 return ClanConfig

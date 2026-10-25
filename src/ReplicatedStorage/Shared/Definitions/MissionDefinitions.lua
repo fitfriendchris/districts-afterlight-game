@@ -17,7 +17,9 @@ MissionDefinitions.STEPS = {
 	{ id = "COLLECT_YIELD", text = "Collect a yield from one of your settlement structures" },
 	{ id = "JOIN_CLAN", text = "Found or join a clan at the Clan Hall (plaza) — survive together" },
 	{ id = "CLAN_CONTRACT", text = "Complete a group contract with your clan (members' deliveries count together)" },
-	{ id = "DONE",          text = "Chapter 4 complete — the districts answer to their clans now. More to come." },
+	{ id = "CLAIM_TERRITORY", text = "Raise your clan's banner — hold a district zone until it flips (plaza, depot or the yard)" },
+	{ id = "FORM_ALLIANCE", text = "Seal an alliance between clan founders at the Clan Hall" },
+	{ id = "DONE",          text = "Chapter 5 complete — Meridian's clans carve up the map. More to come." },
 }
 
 -- Steps that show a numeric progress counter (id -> required amount)
@@ -30,6 +32,8 @@ MissionDefinitions.REQUIREMENTS = {
 	COLLECT_YIELD = 1,
 	JOIN_CLAN = 1,
 	CLAN_CONTRACT = 1,
+	CLAIM_TERRITORY = 1,
+	FORM_ALLIANCE = 1,
 }
 
 MissionDefinitions.DELIVERIES_REQUIRED = 2

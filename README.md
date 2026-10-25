@@ -1,4 +1,4 @@
-# Districts: Afterlight — Meridian Open-World Slice (Phases 0–5)
+# Districts: Afterlight — Meridian Open-World Slice (Phases 0–6)
 
 Roblox open-world roleplay / zombie-survival game, built from the complete
 design blueprint. This repo currently implements **Phase 0 (foundation) and
@@ -83,6 +83,15 @@ The **Clan Hall board** stands by the plaza (`CLAN_HALL` in WorldLayout, press *
 - **Clans persist** in a dedicated DataStore (`DistrictsAfterlight_Clan_v1`, saved every 120s + BindToClose) and survive server restarts; dissolving frees the name for reuse
 - Chapter-4 campaign: join a clan → complete a group contract → "CLAN CHARTERS PILE UP" headline
 
+## Territory & Alliances (Phase 6)
+Three zones are worth fighting over — **Meridian Plaza**, the **Courier Depot**, and the **Home Yard Pads** (`TERRITORY_ZONES` in WorldLayout, banners at zone edges).
+
+- **Capture**: park clan members inside a zone — influence accrues every 2s (rivals inside an owner's zone accrue at half rate; allied clans present together accrue 1.5×). Reach **120 influence** and the banner flips; a news headline fires and the losing clan's members are toasted
+- **Zone bonuses** (full for the owning clan, half for its allies): Plaza → contract payouts ×1.15; Depot → +$5 per package pickup; Yard → +1 item per settlement collect
+- **Influence decays** 1 per tick while nobody of that clan is present; zone ownership persists in a dedicated DataStore (`DistrictsAfterlight_Territory_v1`) and banners re-tint on load; clan dissolution frees owned zones
+- **Alliances**: clan founders offer/accept up to 2 ally clans (mutual offers auto-accept). Allies share zone bonuses and push captures faster; either founder can break a pact
+- Chapter-5 campaign: claim a zone → seal an alliance → "TERRITORY FLIPS HANDS" headline
+
 ## Controls
 
 | Input | Action |
@@ -98,10 +107,11 @@ The **Clan Hall board** stands by the plaza (`CLAN_HALL` in WorldLayout, press *
 ```
 src/
   ReplicatedStorage/
-    Net.lua                    -- central remote registry (14 remotes)
+    Net.lua                    -- central remote registry (15 remotes)
     Shared/WorldLayout.lua     -- GENERATED interaction coordinates (do not hand-edit)
     Shared/Configs/            -- EconomyConfig, ProgressionConfig, SurvivalConfig,
-                               -- HeroConfig, SettlementConfig, ClanConfig
+                               -- HeroConfig, SettlementConfig, ClanConfig,
+                               -- TerritoryConfig
     Shared/Definitions/        -- ItemDefinitions, HomeDefinitions, MissionDefinitions,
                                -- HeroDefinitions
     Shared/Util/Signal.lua
@@ -111,7 +121,7 @@ src/
                                -- ContractService, DialogueService, HomeService,
                                -- MissionService, ShopService, VehicleService,
                                -- SurvivalService, InfectedService, HeroService,
-                               -- SettlementService, ClanService
+                               -- SettlementService, ClanService, TerritoryService
   StarterPlayer/StarterPlayerScripts/  -- UIKit + HUD/dialogue/shop/home/hero/
                                -- settlement/clan clients
 build_place.py                -- packs src/ -> build/DistrictsAfterlight.rbxlx
@@ -150,6 +160,10 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
   start a group contract → deliver 2 packages (either member) → bank +$260/
   deliverer +$100 → rejoin: clan, bank and donation totals persist; a
   dissolved founder leaves and the clan dissolves, freeing the name.
+- **Phase 6**: stand your clan in a zone until the banner flips → the zone
+  bonus now applies (contract ×1.15 / pickup +$5 / yield +1) → founders
+  exchange alliance offers → accept → allied capture + bonuses → rejoin:
+  territory and alliances persist through the dedicated store.
 
 ## Known first-run notes
 
@@ -160,8 +174,8 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 
 ## Roadmap (remaining phases)
 
-Phase 5 clans/group contracts are shipped (see above) → Phase 6
-territory/alliances → Phase 7 live ops → Phase 8 monetization. The
+Phase 6 territory + alliances are shipped (see above) → Phase 7 live ops →
+Phase 8 monetization. The
 service skeleton
 (Net registry, campaign flags, mission tracker) is designed to absorb these
 without rewrites.

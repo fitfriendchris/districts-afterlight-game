@@ -14,6 +14,9 @@ local Signal = require(ReplicatedStorage.Shared.Util.Signal)
 local WorldLayout = require(ReplicatedStorage.Shared.WorldLayout)
 local SettlementConfig = require(ReplicatedStorage.Shared.Configs.SettlementConfig)
 local DataService = require(ServerScriptService.Services.DataService)
+
+-- Phase 6: yard-zone yield hook — set by TerritoryService.Init (no static
+-- require: Territory -> Clan -> ... chain must not loop back into services)
 local EconomyService = require(ServerScriptService.Services.EconomyService)
 
 local cfg = SettlementConfig
@@ -21,6 +24,7 @@ local cfg = SettlementConfig
 type Struct = { Type: string, Pad: number, Level: number, Bank: number, LastTick: number }
 
 local SettlementService = {}
+SettlementService.YieldBonus = nil -- (player) -> number, set by TerritoryService
 SettlementService.Events = {
 	StructureBuilt = Signal.new(), -- (player, structureType)
 	YieldCollected = Signal.new(), -- (player, structureType, amount)
@@ -232,7 +236,8 @@ onCollect = function(player: Player, padIndex: number)
 		if whole < 1 then
 			return
 		end
-		local amount = def.Produces.amount * whole
+		local yieldBonus = SettlementService.YieldBonus and SettlementService.YieldBonus(player) or 0
+		local amount = def.Produces.amount * whole + yieldBonus
 		DataService.update(player, function(d)
 			if def.Produces.kind == "Cash" then
 				d.Cash += amount

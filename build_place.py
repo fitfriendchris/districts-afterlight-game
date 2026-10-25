@@ -525,6 +525,19 @@ def build_props():
     return props
 
 
+def build_territory_flags():
+    """Phase 6: zone banners — TerritoryService tints the banner by clan on capture."""
+    banner_colors = {"PLAZA": (200, 200, 200), "DEPOT": (200, 200, 200), "YARD": (200, 200, 200)}
+    parts_list = []
+    for (key, _name, x, z, _r) in TERRITORY_ZONES:
+        pole = part("TerritoryPole_%s" % key, (0.35, 4.2, 0.35), (x + 6, 2.1, z - 6), color=(70, 74, 84), material="Metal")
+        banner = part("TerritoryBanner_%s" % key, (0.18, 1.6, 1.1), (x + 6, 3.5, z - 5.3),
+                      color=banner_colors[key], material="SmoothPlastic")
+        parts_list.append(pole)
+        parts_list.append(banner)
+    return model("TerritoryFlags", *parts_list)
+
+
 def build_clan_hall(hx, hz):
     """Phase 5: clan hall board near the plaza."""
     pole = part("ClanPole", (0.5, 3.6, 0.5), (12, 1.8, -26), color=(96, 84, 66), material="Wood")
@@ -605,6 +618,7 @@ def build_world():
         build_settlement_pads(-60, -8),
         build_settlement_board(-60, -8),
         build_clan_hall(-60, -8),
+        build_territory_flags(),
         model("Vans", build_van("Van1", 46, -8), build_van("Van2", 46, 16)),
         model("Props", *build_props()),
     )
@@ -622,6 +636,12 @@ DELIVERY_TARGETS = [
 PACKAGE_DEPOT = (20.0, 1.9, -12.0)
 RUBBLE_PILES = [(34.0, 0.8, -52.0), (-44.0, 0.8, -48.0), (66.0, 0.8, -28.0)]
 INFECTED_SPAWNS = [(8.0, 3.0, -64.0), (-30.0, 3.0, -76.0), (54.0, 3.0, -52.0)]
+# Phase 6: territory zones — centers/radii for server-side influence capture
+TERRITORY_ZONES = [
+    ("PLAZA", "Meridian Plaza", 0.0, 0.0, 16.0),
+    ("DEPOT", "Courier Depot", 20.0, -12.0, 12.0),
+    ("YARD", "Home Yard Pads", -62.0, -42.0, 16.0),
+]
 # Phase 4: settlement foundation pads — offsets from the home lot (north yard)
 PAD_OFFSETS = [(-6.0, -30.0), (2.0, -30.0), (-6.0, -38.0), (2.0, -38.0)]
 BUILD_PADS: list = []  # filled by build_settlement_pads()
@@ -669,6 +689,10 @@ def write_world_layout(home_interior):
         lines.append("\t\t{ x = %s, y = %s, z = %s }," % (num(x), num(y), num(z)))
     lines.append("\t},")
     lines.append("\tCLAN_HALL = { x = 12.0, y = 1.8, z = -26.0 },")
+    lines.append("\tTERRITORY_ZONES = {")
+    for (key, name, x, z, r) in TERRITORY_ZONES:
+        lines.append("\t\t%s = { key = %r, name = %r, x = %s, z = %s, radius = %s }," % (key, key, name, num(x), num(z), num(r)))
+    lines.append("\t},")
     lines.append("}")
     with open(WORLD_LAYOUT, "w") as f:
         f.write("\n".join(lines) + "\n")

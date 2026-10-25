@@ -23,9 +23,12 @@ local ClanService = {}
 ClanService.Events = {
 	ClanChanged = Signal.new(),     -- (player, memberOf: number?)
 	ClanContractDone = Signal.new(), -- (player)  — delivering member's mission credit
+	ClanDissolved = Signal.new(),   -- (clanId)  — freed ids, orphaned territory, broken allies
+	AllianceFormed = Signal.new(),  -- (player)  — accepting leader's mission credit
 }
 
 local clans: { [number]: any } = {}     -- id -> clan record (numbers only)
+local allyOffers: { [number]: any } = {} -- targetClanId -> { From = clanId }
 local nameToId: { [string]: number } = {}
 local dirtyClans: { [number]: boolean } = {}
 local lastChange: { [Player]: number } = {}
@@ -78,6 +81,7 @@ local function snapshot(): { any }
 		table.insert(out, {
 			Id = id, Name = clan.Name, Tag = clan.Tag,
 			Members = memberCount(clan), Bank = clan.Bank,
+			Allied = table.concat(allyTags(clan), " "),
 			Contract = clan.Contract and {
 				Progress = clan.Contract.Progress,
 				Required = clan.Contract.Required,
@@ -99,6 +103,68 @@ local function cooldownOk(player: Player): boolean
 	end
 	lastChange[player] = now
 	return true
+end
+
+-- Phase 6: cross-service helpers (TerritoryService consumes these)
+local function allyList(clan): { [number]: boolean }
+	if type(clan.Allies) ~= "table" then
+		clan.Allies = {}
+	end
+	return clan.Allies
+end
+
+function ClanService.allyIdsOf(clanId: number?): { number }
+	local clan = clanId and clans[clanId] or nil
+	if not clan then
+		return {}
+	end
+	local out = {}
+	for id in pairs(allyList(clan)) do
+		table.insert(out, id)
+	end
+	return out
+end
+
+function ClanService.tagOf(clanId: number?): string?
+	local clan = clanId and clans[clanId] or nil
+	return clan and clan.Tag or nil
+end
+
+function ClanService.memberUserIdsOf(clanId: number?): { number }
+	local clan = clanId and clans[clanId] or nil
+	if not clan then
+		return {}
+	end
+	local out = {}
+	for userId in pairs(clan.Members) do
+		table.insert(out, userId)
+	end
+	return out
+end
+
+local function leaderOf(clan): Player?
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p.UserId == clan.OwnerUserId then
+			return p
+		end
+	end
+	return nil
+end
+
+local function isLeader(player: Player, clan): boolean
+	return clan.OwnerUserId == player.UserId
+end
+
+local function allyTags(clan): { string }
+	local tags = {}
+	for id in pairs(allyList(clan)) do
+		local other = clans[id]
+		if other then
+			table.insert(tags, ("[%s]"):format(other.Tag))
+		end
+	end
+	table.sort(tags)
+	return tags
 end
 
 -- ---------------------------------------------------------------- actions ----
@@ -153,6 +219,7 @@ function ClanService.create(player: Player, name: any, tag: any)
 		OwnerUserId = player.UserId, Bank = 0,
 		Members = { [player.UserId] = true },
 		Contract = nil, LastContractAt = 0,
+		Allies = {},
 	}
 	nameToId[cleanName:lower()] = id
 	DataService.update(player, function(d)
@@ -221,6 +288,15 @@ function ClanService.leave(player: Player)
 		clans[clan.Id] = nil
 		dirtyClans[clan.Id] = nil
 		nameToId[clan.Name:lower()] = nil
+		allyOffers[clan.Id] = nil
+		-- allies: cut the dead clan out of every friendly list
+		for _, other in pairs(clans) do
+			if other.Allies and other.Allies[clan.Id] then
+				other.Allies[clan.Id] = nil
+				dirtyClans[other.Id] = true
+			end
+		end
+		ClanService.Events.ClanDissolved:Fire(clan.Id)
 	else
 		ClanService.persistAll()
 	end
@@ -313,6 +389,136 @@ function ClanService.onContractDelivered(player: Player)
 	ClanService.sync(player)
 end
 
+-- ---------------------------------------------------------------- allies ----
+local function toastClan(clanId: number, text: string)
+	for _, p in ipairs(Players:GetPlayers()) do
+		local data = DataService.get(p)
+		if data and data.Clan and data.Clan.Id == clanId then
+			Net.event("TOAST"):FireClient(p, { text = text, duration = 4 })
+		end
+	end
+end
+
+function ClanService.allyOffer(player: Player, targetId: number)
+	local clan = clanOf(player)
+	if not clan then
+		return false
+	end
+	if not isLeader(player, clan) then
+		Net.event("TOAST"):FireClient(player, { text = "Only the founder can raise alliances", duration = 3 })
+		return false
+	end
+	local target = clans[targetId]
+	if not target or target.Id == clan.Id then
+		Net.event("TOAST"):FireClient(player, { text = "No such rival clan", duration = 3 })
+		return false
+	end
+	local mine, theirs = allyList(clan), allyList(target)
+	if mine[targetId] then
+		Net.event("TOAST"):FireClient(player, { text = "Already allies", duration = 3 })
+		return false
+	end
+	local count = 0
+	for _ in pairs(mine) do
+		count += 1
+	end
+	if count >= cfg.ALLY_MAX then
+		Net.event("TOAST"):FireClient(player, { text = ("Alliance slots full (%d)"):format(cfg.ALLY_MAX), duration = 3 })
+		return false
+	end
+	local tcount = 0
+	for _ in pairs(theirs) do
+		tcount += 1
+	end
+	if tcount >= cfg.ALLY_MAX then
+		Net.event("TOAST"):FireClient(player, { text = "Their alliance slots are full", duration = 3 })
+		return false
+	end
+	-- mutual offers seal instantly
+	local pending = allyOffers[targetId]
+	if pending and pending.From == clan.Id then
+		-- this IS our own offer echoing back (shouldn't happen); ignore
+		return false
+	end
+	local mutual = allyOffers[clan.Id]
+	if mutual and mutual.From == targetId then
+		return ClanService.allyAccept(player, targetId)
+	end
+	allyOffers[targetId] = { From = clan.Id }
+	local leader = leaderOf(target)
+	if leader then
+		Net.event("TOAST"):FireClient(leader, { text = ("[%s] %s proposes an alliance — open the Clan Hall to accept"):format(clan.Tag, clan.Name), duration = 6 })
+	end
+	Net.event("TOAST"):FireClient(player, { text = ("Alliance offered to [%s]"):format(target.Tag), duration = 3 })
+	ClanService.sync(player)
+	return true
+end
+
+function ClanService.allyAccept(player: Player, fromId: number)
+	local clan = clanOf(player)
+	if not clan then
+		return false
+	end
+	if not isLeader(player, clan) then
+		Net.event("TOAST"):FireClient(player, { text = "Only the founder can accept alliances", duration = 3 })
+		return false
+	end
+	local from = clans[fromId]
+	if not from then
+		Net.event("TOAST"):FireClient(player, { text = "That clan has dissolved", duration = 3 })
+		return false
+	end
+	local offer = allyOffers[clan.Id]
+	if (not offer or offer.From ~= fromId) and not allyList(clan)[fromId] then
+		Net.event("TOAST"):FireClient(player, { text = "No standing alliance offer from them", duration = 3 })
+		return false
+	end
+	allyOffers[clan.Id] = nil
+	allyOffers[fromId] = nil
+	if allyList(clan)[fromId] then
+		Net.event("TOAST"):FireClient(player, { text = "Already allies", duration = 3 })
+		return false -- stale offer on an existing pact: clear it, credit nothing
+	end
+	allyList(clan)[fromId] = true
+	allyList(from)[clan.Id] = true
+	ClanService.persistAll()
+	ClanService.Events.AllianceFormed:Fire(player)
+	toastClan(clan.Id, ("ALLIANCE SEALED — [%s] + [%s] stand together"):format(clan.Tag, from.Tag))
+	toastClan(fromId, ("ALLIANCE SEALED — [%s] + [%s] stand together"):format(from.Tag, clan.Tag))
+	ClanService.sync(player)
+	for _, p in ipairs(Players:GetPlayers()) do
+		local data = DataService.get(p)
+		if data and data.Clan and data.Clan.Id == fromId then
+			ClanService.sync(p)
+		end
+	end
+	return true
+end
+
+function ClanService.allyBreak(player: Player, targetId: number)
+	local clan = clanOf(player)
+	if not clan then
+		return false
+	end
+	if not isLeader(player, clan) then
+		Net.event("TOAST"):FireClient(player, { text = "Only the founder can break alliances", duration = 3 })
+		return false
+	end
+	if not allyList(clan)[targetId] then
+		return false
+	end
+	local other = clans[targetId]
+	allyList(clan)[targetId] = nil
+	if other then
+		allyList(other)[clan.Id] = nil
+		toastClan(targetId, ("[%s] broke the alliance"):format(clan.Tag))
+	end
+	ClanService.persistAll()
+	Net.event("TOAST"):FireClient(player, { text = "Alliance broken", duration = 3 })
+	ClanService.sync(player)
+	return true
+end
+
 -- ------------------------------------------------------------------- sync ----
 function ClanService.sync(player: Player, open: boolean?)
 	local mine = nil
@@ -320,12 +526,15 @@ function ClanService.sync(player: Player, open: boolean?)
 	if data and data.Clan and data.Clan.Id then
 		mine = clans[data.Clan.Id]
 	end
-	Net.event("CLAN_SYNC"):FireClient(player, {
-		Open = open or nil,
-		Clans = snapshot(),
-		MemberOf = data and data.Clan and data.Clan.Id or nil,
-		Donated = data and data.Clan and data.Clan.Donated or 0,
-		Mine = mine and { Id = mine.Id, Name = mine.Name, Tag = mine.Tag, Bank = mine.Bank, Members = memberCount(mine), Contract = mine.Contract and { Progress = mine.Contract.Progress, Required = mine.Contract.Required } or nil } or nil,
+		local offer = mine and allyOffers[mine.Id] or nil
+		local offerFrom = offer and clans[offer.From] or nil
+		Net.event("CLAN_SYNC"):FireClient(player, {
+			Open = open or nil,
+			Clans = snapshot(),
+			Offer = offerFrom and { Id = offerFrom.Id, Tag = offerFrom.Tag, Name = offerFrom.Name } or nil,
+			MemberOf = data and data.Clan and data.Clan.Id or nil,
+			Donated = data and data.Clan and data.Clan.Donated or 0,
+		Mine = mine and { Id = mine.Id, Name = mine.Name, Tag = mine.Tag, Bank = mine.Bank, Members = memberCount(mine), Leader = mine.OwnerUserId == player.UserId, Allies = table.concat(allyTags(mine), " "), AllyIds = ClanService.allyIdsOf(mine.Id), Contract = mine.Contract and { Progress = mine.Contract.Progress, Required = mine.Contract.Required } or nil } or nil,
 	})
 end
 
@@ -438,6 +647,12 @@ function ClanService.Init()
 			ClanService.donate(player, payload.amount)
 		elseif action == "Contract" then
 			ClanService.startContract(player)
+		elseif action == "AllyOffer" then
+			ClanService.allyOffer(player, math.floor(tonumber(payload.id) or -1))
+		elseif action == "AllyAccept" then
+			ClanService.allyAccept(player, math.floor(tonumber(payload.id) or -1))
+		elseif action == "AllyBreak" then
+			ClanService.allyBreak(player, math.floor(tonumber(payload.id) or -1))
 		elseif action == "Resync" then
 			ClanService.sync(player)
 		end

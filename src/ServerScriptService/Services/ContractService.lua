@@ -12,7 +12,12 @@ local WorldLayout = require(ReplicatedStorage.Shared.WorldLayout)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 
+-- Phase 6: territory bonus hooks — set by TerritoryService.Init (late hook; a
+-- static require here would deadlock: Contract -> Territory -> Clan -> Contract)
+
 local ContractService = {}
+ContractService.PickupBonus = nil -- (player) -> number, set by TerritoryService
+ContractService.DeliverCashMult = nil -- (player) -> multiplier, set by TerritoryService
 ContractService.Events = {
 	Accepted = Signal.new(), -- (player, targetIndex)
 	Delivered = Signal.new(), -- (player)
@@ -105,7 +110,8 @@ function ContractService.Init()
 				d.Contract.Active.HasPackage = true
 				d.Stats.Pickups = (d.Stats.Pickups or 0) + 1
 			end)
-			EconomyService.award(player, EconomyConfig.CONTRACT.PICKUP_CASH, EconomyConfig.CONTRACT.PICKUP_XP, "contract_pickup")
+			local pickupBonus = ContractService.PickupBonus and ContractService.PickupBonus(player) or 0
+		EconomyService.award(player, EconomyConfig.CONTRACT.PICKUP_CASH + pickupBonus, EconomyConfig.CONTRACT.PICKUP_XP, "contract_pickup")
 			respond(player, {
 				action = "PickedUp",
 				target = active.Target,
@@ -134,7 +140,8 @@ function ContractService.Init()
 			d.Stats.ContractsDone = (d.Stats.ContractsDone or 0) + 1
 			d.Contract.Active = nil
 		end)
-		EconomyService.award(player, EconomyConfig.CONTRACT.CASH_REWARD, EconomyConfig.CONTRACT.XP_REWARD, "contract_deliver")
+		local cashMult = ContractService.DeliverCashMult and ContractService.DeliverCashMult(player) or 1.0
+		EconomyService.award(player, math.floor(EconomyConfig.CONTRACT.CASH_REWARD * cashMult), EconomyConfig.CONTRACT.XP_REWARD, "contract_deliver")
 		ContractService.Events.Delivered:Fire(player)
 		Net.fireTo(player, "TOAST", {
 			text = ("Delivered! +%d cash, +%d XP"):format(EconomyConfig.CONTRACT.CASH_REWARD, EconomyConfig.CONTRACT.XP_REWARD),

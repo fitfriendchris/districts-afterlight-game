@@ -16,6 +16,7 @@ local SurvivalService = require(script.Parent.SurvivalService)
 local InfectedService = require(script.Parent.InfectedService)
 local SettlementService = require(script.Parent.SettlementService)
 local ClanService = require(script.Parent.ClanService)
+local TerritoryService = require(script.Parent.TerritoryService)
 
 local MissionService = {}
 
@@ -31,6 +32,8 @@ local COUNTER_FIELDS = {
 	COLLECT_YIELD = "Collected",
 	JOIN_CLAN = "Joined",
 	CLAN_CONTRACT = "GroupDone",
+	CLAIM_TERRITORY = "ZonesClaimed",
+	FORM_ALLIANCE = "AlliesMade",
 }
 
 local function pushObjective(player: Player)
@@ -117,6 +120,20 @@ local function recompute(player: Player)
 		m.step = 11
 	end
 
+	-- Chapter 5: territory + alliances ----------------------------------------------
+	if m.step == 11 then
+		CampaignService.setFlag(player, "territory_claimed")
+	end
+	if m.step == 11 and (m.ZonesClaimed or 0) >= (MissionDefinitions.REQUIREMENTS.CLAIM_TERRITORY or 1) then
+		m.step = 12
+	end
+	if m.step == 12 then
+		CampaignService.setFlag(player, "alliance_formed")
+	end
+	if m.step == 12 and (m.AlliesMade or 0) >= (MissionDefinitions.REQUIREMENTS.FORM_ALLIANCE or 1) then
+		m.step = 13
+	end
+
 	DataService.markDirty(player)
 	DataService.sync(player)
 	pushObjective(player)
@@ -200,7 +217,10 @@ local function onYieldCollected(player: Player)
 	recompute(player)
 end
 
-local function onClanJoined(player: Player)
+local function onClanJoined(player: Player, memberOf: number?)
+	if not memberOf then
+		return -- leaving fires ClanChanged with nil membership
+	end
 	local data = DataService.get(player)
 	if not data then
 		return
@@ -221,6 +241,32 @@ local function onClanContractDone(player: Player)
 	if data.Missions.INTRO.step == 10 then
 		DataService.update(player, function(d)
 			d.Missions.INTRO.GroupDone = (d.Missions.INTRO.GroupDone or 0) + 1
+		end)
+	end
+	recompute(player)
+end
+
+local function onZoneCaptured(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	if data.Missions.INTRO.step == 11 then
+		DataService.update(player, function(d)
+			d.Missions.INTRO.ZonesClaimed = (d.Missions.INTRO.ZonesClaimed or 0) + 1
+		end)
+	end
+	recompute(player)
+end
+
+local function onAllianceFormed(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	if data.Missions.INTRO.step == 12 then
+		DataService.update(player, function(d)
+			d.Missions.INTRO.AlliesMade = (d.Missions.INTRO.AlliesMade or 0) + 1
 		end)
 	end
 	recompute(player)
@@ -247,6 +293,8 @@ function MissionService.Init()
 	SettlementService.Events.YieldCollected:Connect(onYieldCollected)
 	ClanService.Events.ClanChanged:Connect(onClanJoined)
 	ClanService.Events.ClanContractDone:Connect(onClanContractDone)
+	TerritoryService.Events.ZoneCaptured:Connect(onZoneCaptured)
+	ClanService.Events.AllianceFormed:Connect(onAllianceFormed)
 
 	-- players already loaded before Init, and every future load
 	local function onLoaded(player)

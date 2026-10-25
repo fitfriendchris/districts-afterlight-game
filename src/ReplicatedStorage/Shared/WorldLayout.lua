@@ -28,4 +28,9 @@ return {
 		{ x = -58, y = 0.24, z = -46 },
 	},
 	CLAN_HALL = { x = 12.0, y = 1.8, z = -26.0 },
+	TERRITORY_ZONES = {
+		PLAZA = { key = 'PLAZA', name = 'Meridian Plaza', x = 0, z = 0, radius = 16 },
+		DEPOT = { key = 'DEPOT', name = 'Courier Depot', x = 20, z = -12, radius = 12 },
+		YARD = { key = 'YARD', name = 'Home Yard Pads', x = -62, z = -42, radius = 16 },
+	},
 }
