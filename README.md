@@ -1,4 +1,4 @@
-# Districts: Afterlight — Meridian Open-World Slice (Phases 0–7)
+# Districts: Afterlight — Meridian Open-World Slice (Phases 0–8)
 
 Roblox open-world roleplay / zombie-survival game, built from the complete
 design blueprint. This repo currently implements **Phase 0 (foundation) and
@@ -101,6 +101,20 @@ and infected defeats together. Hitting **25 in one UTC day** pays **$50 + 1 scra
   consecutive day, capped at day 7 ($150 + 8 scrap + 2 medical). Miss a day and the streak resets
 - Rewards are server-validated and clamped; goal state persists in `DistrictsAfterlight_LiveOps_v1`
 
+## Monetization (Phase 8)
+A **Support Terminal** stands by the community board. After the game is
+published, enter the Roblox asset IDs in `MonetizationConfig` and the
+terminal comes alive — until then it politely says "Support options arrive
+after launch".
+
+- **Developer products** flow through server-side `ProcessReceipt`: every
+  receipt is recorded in the profile (rejoin/refund-recovery safe, one grant
+  each) and paid out in clean server-awarded cash/supplies
+- **Supporter pass**: resolved once per join via `UserOwnsGamePassAsync` —
+  owners get +10% contract payouts, stacked multiplicatively with any
+  territory bonus
+- Grants are economy-clamped like everything else (`MAX_SINGLE_AWARD` guard)
+
 ## Controls
 
 | Input | Action |
@@ -120,7 +134,8 @@ src/
     Shared/WorldLayout.lua     -- GENERATED interaction coordinates (do not hand-edit)
     Shared/Configs/            -- EconomyConfig, ProgressionConfig, SurvivalConfig,
                                -- HeroConfig, SettlementConfig, ClanConfig,
-                               -- TerritoryConfig, LiveOpsConfig
+                               -- TerritoryConfig, LiveOpsConfig,
+                               -- MonetizationConfig
     Shared/Definitions/        -- ItemDefinitions, HomeDefinitions, MissionDefinitions,
                                -- HeroDefinitions
     Shared/Util/Signal.lua
@@ -131,7 +146,7 @@ src/
                                -- MissionService, ShopService, VehicleService,
                                -- SurvivalService, InfectedService, HeroService,
                                -- SettlementService, ClanService, TerritoryService,
-                               -- LiveOpsService
+                               -- LiveOpsService, MonetizationService
   StarterPlayer/StarterPlayerScripts/  -- UIKit + HUD/dialogue/shop/home/hero/
                                -- settlement/clan clients
 build_place.py                -- packs src/ -> build/DistrictsAfterlight.rbxlx
@@ -177,7 +192,12 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 - **Phase 7**: join on consecutive days for a growing streak payout ($60→$150/
   capped) → the community board counts every delivery and infected defeat →
   25 in a UTC day pays the whole district → late joiners bank it too →
-  streaks and goal state persist.
+  streaks and goal state persist..
+- **Phase 8**: press E at the support terminal before publication →
+  "options arrive after launch" notice (dormant) → after publishing, add
+  real Roblox product/pass IDs to MonetizationConfig → purchases process
+  server-side with recorded receipts → supporter payouts stack with
+  territory bonuses.
 
 ## Known first-run notes
 
@@ -188,8 +208,8 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 
 ## Roadmap (remaining phases)
 
-Phase 7 live ops are shipped (see above) → Phase 8 monetization → final
-gap pass. The
+Phase 8 monetization scaffolding is shipped (dormant until real asset IDs
+are entered after publishing) → final gap pass. The
 service skeleton
 (Net registry, campaign flags, mission tracker) is designed to absorb these
 without rewrites.

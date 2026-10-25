@@ -58,6 +58,7 @@ local function defaultData()
 		Settlement = { Structures = {} },
 		Clan = { Id = nil, Donated = 0 },
 		LiveOps = { ClaimDay = nil, Streak = 0, GoalDay = nil },
+		Monetization = { SupporterPass = false, Receipts = {} },
 		Settings = {},
 		Heroes = { Roster = {}, Active = {} },
 	}

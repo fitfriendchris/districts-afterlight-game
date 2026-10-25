@@ -533,6 +533,15 @@ def build_community_board():
     return model("CommunityBoard", pole, board)
 
 
+def build_support_terminal():
+    """Phase 8: support terminal — MonetizationService attaches the prompt."""
+    stand = part("TerminalStand", (0.4, 1.4, 0.4), (-9, 0.7, -17), color=(50, 54, 62), material="Metal")
+    screen = part("SupportTerminal", (1.6, 1.1, 0.18), (-9, 1.85, -17), yaw=205,
+                  color=(28, 32, 40), material="Metal")
+    surface_text(screen, "SUPPORT MERIDIAN", headline_name="Headline", sub="Press E when options go live")
+    return model("SupportTerminal", stand, screen)
+
+
 def build_territory_flags():
     """Phase 6: zone banners — TerritoryService tints the banner by clan on capture."""
     banner_colors = {"PLAZA": (200, 200, 200), "DEPOT": (200, 200, 200), "YARD": (200, 200, 200)}
@@ -628,6 +637,7 @@ def build_world():
         build_clan_hall(-60, -8),
         build_territory_flags(),
         build_community_board(),
+        build_support_terminal(),
         model("Vans", build_van("Van1", 46, -8), build_van("Van2", 46, 16)),
         model("Props", *build_props()),
     )

@@ -18,6 +18,7 @@ local EconomyService = require(script.Parent.EconomyService)
 local ContractService = {}
 ContractService.PickupBonus = nil -- (player) -> number, set by TerritoryService
 ContractService.DeliverCashMult = nil -- (player) -> multiplier, set by TerritoryService
+ContractService.SupporterMultSlot = nil -- (player) -> multiplier, set by MonetizationService (Phase 8)
 ContractService.Events = {
 	Accepted = Signal.new(), -- (player, targetIndex)
 	Delivered = Signal.new(), -- (player)
@@ -141,6 +142,7 @@ function ContractService.Init()
 			d.Contract.Active = nil
 		end)
 		local cashMult = ContractService.DeliverCashMult and ContractService.DeliverCashMult(player) or 1.0
+	cashMult = cashMult * (ContractService.SupporterMultSlot and ContractService.SupporterMultSlot(player) or 1.0)
 		EconomyService.award(player, math.floor(EconomyConfig.CONTRACT.CASH_REWARD * cashMult), EconomyConfig.CONTRACT.XP_REWARD, "contract_deliver")
 		ContractService.Events.Delivered:Fire(player)
 		Net.fireTo(player, "TOAST", {
