@@ -525,6 +525,15 @@ def build_props():
     return props
 
 
+def build_hero_kiosk():
+    """Phase 3: Heroes Hall recruitment kiosk in the plaza."""
+    kiosk = part("HeroKiosk", (2.6, 3.4, 1.3), (16, 1.83, -17), yaw=205, color=(52, 60, 86), material="Metal")
+    surface_text(kiosk, "HEROES HALL", headline_name="Headline", sub="Recruit • Evolve ★ • Deploy — press E")
+    kiosk_base = part("KioskBase", (3.0, 0.3, 1.7), (16, 0.28, -17), color=(40, 46, 60), material="Metal")
+    lamp = part("KioskLamp", (0.5, 0.24, 0.5), (16, 3.7, -17), color=(150, 200, 255), material="Neon")
+    return model("HeroKioskBlock", kiosk, kiosk_base, lamp)
+
+
 def build_phase2_nodes(hx, hz):
     """Phase 2: scavenge rubble, infected spawn markers, safehouse barricade anchor."""
     rubble = Node("Model", "Rubble")
@@ -576,6 +585,7 @@ def build_world():
               build_building("Building7", -66, 58, 28, 20, 34, "+x", (150, 162, 148))),
         build_targets(),
         build_phase2_nodes(-60, -8),
+        build_hero_kiosk(),
         model("Vans", build_van("Van1", 46, -8), build_van("Van2", 46, 16)),
         model("Props", *build_props()),
     )
@@ -617,6 +627,7 @@ def write_world_layout(home_interior):
     for (x, y, z) in INFECTED_SPAWNS:
         lines.append("\t\t{ x = %s, y = %s, z = %s }," % (num(x), num(y), num(z)))
     lines.append("\t},")
+    lines.append("\tHERO_KIOSK = { x = 16.0, y = 1.83, z = -17.0 },")
     lines.append("}")
     with open(WORLD_LAYOUT, "w") as f:
         f.write("\n".join(lines) + "\n")

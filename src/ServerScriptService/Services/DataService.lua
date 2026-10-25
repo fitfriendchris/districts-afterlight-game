@@ -56,6 +56,7 @@ local function defaultData()
 		Cosmetics = { Owned = {}, Equipped = { JacketColor = "JK_CRIMSON" } },
 		Home = { Furniture = {} },
 		Settings = {},
+		Heroes = { Roster = {}, Active = {} },
 	}
 end
 
@@ -88,6 +89,7 @@ function DataService.sync(player: Player)
 		} or nil,
 		Cosmetics = data.Cosmetics,
 		Inventory = data.Inventory,
+		Heroes = data.Heroes,
 		Home = { Furniture = data.Home.Furniture },
 		Flags = data.Campaign.Flags,
 	})

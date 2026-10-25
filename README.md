@@ -1,4 +1,4 @@
-# Districts: Afterlight — Vertical Slice (Phase 0 + 1 + 2 core)
+# Districts: Afterlight — Meridian Open-World Slice (Phase 0 + 1 + 2 core + 3 hero squad)
 
 Roblox open-world roleplay / zombie-survival game, built from the complete
 design blueprint. This repo currently implements **Phase 0 (foundation) and
@@ -50,6 +50,15 @@ warn in the output).
 - **Inventory** — scrap/fabric/medical counts persist in the profile and show
   in the HUD (server-awarded only).
 
+## Heroes Hall (Phase 3)
+A kiosk by the plaza (`HERO_KIOSK` in WorldLayout, press **E**) opens the Heroes Hall. **8 hand-authored survivors** across 4 rarities — RIN (Runner·Common), MOSS (Courier·Common), SABLE (Medic·Rare), DORAN (Warden·Rare), LYS (Arc·Epic), VEL (Quartermistress·Epic), KANE (Sentinel·Legendary), IVEY (Overseer·Legendary).
+
+- **Recruit** (server-validated): Common $200·2 Scrap → Rare $480 (3S·2F) → Epic $950 (4S·3F·1 Med) → Legendary $1800 (6S·5F·3 Med)
+- **Star-up** ★1–★5: Medical {1,2,4,6,9} + cash {150→2400}; every ★ = +14% damage, +250 HP; ★5 unlocks the Spec (Vanguard/Guardian/Meditech)
+- **Gear**: Weapon 6 Scrap (dmg ×1.15), Armor 5S·2F (HP ×1.5)
+- **Deploy**: up to 2 armed allies fight alongside you server-side (`InfectedService` ally registry), respawn after 12s if dropped; Meditech Spec adds +20% medical drops from infected
+- Everything mutates `data.Heroes` via the Data service — recruits, stars and gear persist
+
 ## Controls
 
 | Input | Action |
@@ -58,7 +67,7 @@ warn in the output).
 | E (near prompt) | Take contract / Pick up package / Open shop or home console / Talk |
 | WASD while seated | Drive van (arrow keys/WASD, Space to brake) |
 | DELIVER PACKAGE button | Deliver when at the target beacon |
-| Click (Crowbar equipped) | Swing at infected (7-stud range, must face target) |
+| Click (Crowbar equipped) | Swing at infected (8-stud range, must face target) |
 
 ## Repo layout
 
@@ -102,6 +111,9 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 - **Phase 2**: finish chapter 1 → emergency broadcast + darkness → scavenge
   3 piles → crowbar-kill an infected → barricade Apartment 3B → chapter 2
   complete toast. Materials persist through rejoin.
+- **Phase 3**: press **E** at the Heroes Hall kiosk → recruit a hero (cash +
+  materials leave the profile) → gear them → deploy → ally shoots infected →
+  recall → rejoin keeps roster, stars and gear. Spec locks at ★5.
 
 ## Known first-run notes
 
@@ -112,8 +124,8 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 
 ## Roadmap (remaining phases)
 
-Phase 2 core is shipped (see above) → Phase 3 heroes/combat progression →
-Phase 4 settlement + production → Phase 5 clans/missions → Phase 6 territory/
-alliances → Phase 7 live ops → Phase 8 monetization. The service skeleton
+Phase 3 hero squad is shipped (see above) → Phase 4 settlement + production →
+Phase 5 clans/missions → Phase 6 territory/alliances → Phase 7 live ops →
+Phase 8 monetization. The service skeleton
 (Net registry, campaign flags, mission tracker) is designed to absorb these
 without rewrites.

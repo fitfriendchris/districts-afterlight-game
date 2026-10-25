@@ -17,12 +17,35 @@ InfectedService.Events = {
 	Defeated = Signal.new(), -- (player, zombieModel)
 }
 
+-- Optional hook (Player) -> number: extra medical-drop chance; HeroService sets
+-- this in Init so the hero specialization logic stays in one place.
+InfectedService.MedicalDropBonus = nil
+
 local cfg = SurvivalConfig.INFECTED
 
 local folder: Folder? = nil
 local alive: { [Model]: Humanoid } = {}
 local lastHitBy: { [Model]: Player } = {}
 local attackClock: { [Model]: number } = {}
+
+-- Ally registration (HeroService): friendly rigs zombies may also target
+local allyTargets: { [Model]: { humanoid: Humanoid, credit: Player } } = {}
+
+function InfectedService.registerAlly(model: Model, humanoid: Humanoid, credit: Player)
+	allyTargets[model] = { humanoid = humanoid, credit = credit }
+end
+
+function InfectedService.unregisterAlly(model: Model)
+	allyTargets[model] = nil
+end
+
+function InfectedService.listHostiles(): { Model }
+	local out = {}
+	for model in pairs(alive) do
+		table.insert(out, model)
+	end
+	return out
+end
 
 -- forward declaration: defeat() schedules respawns through this hook
 local spawnAt
@@ -121,8 +144,9 @@ local function spawnRig(homeCF: CFrame): Model?
 	return model
 end
 
-local function findNearestCharacter(hrp: Part): (Player?, number)
-	local nearest: Player? = nil
+local function findNearestTarget(hrp: Part)
+	-- Candidates: player characters, plus any registered ally rigs (HeroService).
+	local nearest = nil -- { root: BasePart, humanoid: Humanoid, credit: Player? }
 	local nearestDist = math.huge
 	for _, player in ipairs(Players:GetPlayers()) do
 		local char = player.Character
@@ -131,8 +155,20 @@ local function findNearestCharacter(hrp: Part): (Player?, number)
 		if root and hum and hum.Health > 0 then
 			local d = (root.Position - hrp.Position).Magnitude
 			if d < nearestDist then
-				nearest = player
+				nearest = { root = root, humanoid = hum, credit = player }
 				nearestDist = d
+			end
+		end
+	end
+	for model, entry in pairs(allyTargets) do
+		if model.Parent and entry.humanoid.Health > 0 then
+			local root = model:FindFirstChild("HumanoidRootPart")
+			if root then
+				local d = (root.Position - hrp.Position).Magnitude
+				if d < nearestDist then
+					nearest = { root = root, humanoid = entry.humanoid, credit = entry.credit }
+					nearestDist = d
+				end
 			end
 		end
 	end
@@ -144,24 +180,17 @@ local function runAI(model: Model, humanoid: Humanoid, hrp: Part, homePos: Vecto
 	task.spawn(function()
 		while model.Parent and humanoid.Health > 0 do
 			task.wait(cfg.TICK)
-			local target, dist = findNearestCharacter(hrp)
-			if target and target.Character then
-				local root = target.Character:FindFirstChild("HumanoidRootPart")
-				if not root then
-					continue
-				end
+			local target, dist = findNearestTarget(hrp)
+			if target then
 				if dist <= cfg.ATTACK_RANGE then
 					humanoid:MoveTo(hrp.Position) -- plant and strike
 					local now = os.clock()
 					if now - (attackClock[model] or 0) >= cfg.ATTACK_COOLDOWN then
 						attackClock[model] = now
-						local phum = target.Character:FindFirstChildOfClass("Humanoid")
-						if phum then
-							phum:TakeDamage(cfg.DAMAGE)
-						end
+						target.humanoid:TakeDamage(cfg.DAMAGE)
 					end
 				elseif dist <= cfg.AGGRO_RADIUS then
-					humanoid:MoveTo(root.Position)
+					humanoid:MoveTo(target.root.Position)
 				end
 			else
 				roamTick += 1
@@ -187,9 +216,11 @@ local function defeat(model: Model)
 	lastHitBy[model] = nil
 	if killer and killer.Parent then
 		EconomyService.award(killer, cfg.CASH_REWARD, cfg.XP_REWARD, "infected_defeated")
+		local dropBonus = InfectedService.MedicalDropBonus
+			and InfectedService.MedicalDropBonus(killer) or 0
 		DataService.update(killer, function(d)
 			d.Stats.InfectedDefeated = (d.Stats.InfectedDefeated or 0) + 1
-			if math.random() < cfg.MEDICAL_DROP_CHANCE then
+			if math.random() < (cfg.MEDICAL_DROP_CHANCE + dropBonus) then
 				d.Inventory.Medical = (d.Inventory.Medical or 0) + 1
 				Net.event("TOAST"):FireClient(killer, {
 					text = "Scavenged the infected: +1 Medical supply",
