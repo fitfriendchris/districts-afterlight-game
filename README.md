@@ -1,4 +1,4 @@
-# Districts: Afterlight — Meridian Open-World Slice (Phases 0–8)
+# Districts: Afterlight — Meridian Open-World Slice (Phases 0–9)
 
 Roblox open-world roleplay / zombie-survival game, built from the complete
 design blueprint. This repo currently implements **Phase 0 (foundation) and
@@ -115,6 +115,21 @@ after launch".
   territory bonus
 - Grants are economy-clamped like everything else (`MAX_SINGLE_AWARD` guard)
 
+## Visuals (Phase 9)
+The world ships with a lighting grade and living ambience, not bare parts:
+
+- **Lighting/Atmosphere/ColorCorrection** emitted at build time — golden-hour
+  start, dense haze and glare, subtle desaturation + filmic contrast
+- **11 PointLights** on the fountain orb, plaza lamps, road lamps, kiosk and
+  support terminal — neon actually illuminates now
+- **Particles** (built-in `rbxasset` textures, render on every client):
+  fountain sparkle shimmer, smoke plumes at infected spawn markers, drift
+  dust at the courier depot — added at runtime by `WorldFX.server.lua`
+- **Neon breathing**: `AmbientFX.client.lua` tweens every Neon surface with
+  staggered sine pulses so lamps and screens glow alive
+- The campaign's per-chapter lighting reactions (Phase 2–5) layer on top of
+  this base
+
 ## Controls
 
 | Input | Action |
@@ -147,6 +162,7 @@ src/
                                -- SurvivalService, InfectedService, HeroService,
                                -- SettlementService, ClanService, TerritoryService,
                                -- LiveOpsService, MonetizationService
+  ServerScriptService/       -- Bootstrap (service order), WorldFX (particles)
   StarterPlayer/StarterPlayerScripts/  -- UIKit + HUD/dialogue/shop/home/hero/
                                -- settlement/clan clients
 build_place.py                -- packs src/ -> build/DistrictsAfterlight.rbxlx
@@ -197,7 +213,10 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
   "options arrive after launch" notice (dormant) → after publishing, add
   real Roblox product/pass IDs to MonetizationConfig → purchases process
   server-side with recorded receipts → supporter payouts stack with
-  territory bonuses.
+  territory bonuses..
+- **Phase 9**: spawn in → golden-hour light with haze and graded color →
+  fountain sparkles, depot dust, spawn-point smoke → lamps glow and breathe →
+  every chapter keeps re-grading the world as the story flags fire.
 
 ## Known first-run notes
 
@@ -208,8 +227,8 @@ Static checks (run locally): `luau-analyze *.lua` with Roblox type definitions.
 
 ## Roadmap (remaining phases)
 
-Phase 8 monetization scaffolding is shipped (dormant until real asset IDs
-are entered after publishing) → final gap pass. The
+Phase 9 visual polish shipped (lighting/atmosphere/particles/neon breathing)
+→ publish → enter monetization asset IDs → the Support Terminal goes live. The
 service skeleton
 (Net registry, campaign flags, mission tracker) is designed to absorb these
 without rewrites.

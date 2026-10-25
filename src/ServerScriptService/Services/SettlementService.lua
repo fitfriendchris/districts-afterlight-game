@@ -239,9 +239,7 @@ onCollect = function(player: Player, padIndex: number)
 		local yieldBonus = SettlementService.YieldBonus and SettlementService.YieldBonus(player) or 0
 		local amount = def.Produces.amount * whole + yieldBonus
 		DataService.update(player, function(d)
-			if def.Produces.kind == "Cash" then
-				d.Cash += amount
-			else
+			if def.Produces.kind ~= "Cash" then
 				d.Inventory[def.Produces.item] = (d.Inventory[def.Produces.item] or 0) + amount
 			end
 			d.Stats.Collected = (d.Stats.Collected or 0) + 1
@@ -251,6 +249,10 @@ onCollect = function(player: Player, padIndex: number)
 				s.LastTick = os.clock()
 			end
 		end)
+		if def.Produces.kind == "Cash" then
+			-- cash must flow through the EconomyService gateway (Phase 8 gap-pass fix)
+			EconomyService.award(player, amount, 0, "settlement_yield")
+		end
 		local gain = def.Produces.kind == "Cash" and ("$%d collected"):format(amount) or ("+%d %s"):format(amount, def.Produces.item)
 		Net.event("TOAST"):FireClient(player, { text = gain, duration = 3 })
 		local updated = structsByPad(player, padIndex)

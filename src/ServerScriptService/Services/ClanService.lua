@@ -25,6 +25,7 @@ ClanService.Events = {
 	ClanContractDone = Signal.new(), -- (player)  — delivering member's mission credit
 	ClanDissolved = Signal.new(),   -- (clanId)  — freed ids, orphaned territory, broken allies
 	AllianceFormed = Signal.new(),  -- (player)  — accepting leader's mission credit
+	BoardOpened = Signal.new(),     -- (player)  — clan hall board open: territory syncs its snapshot
 }
 
 local clans: { [number]: any } = {}     -- id -> clan record (numbers only)
@@ -547,6 +548,7 @@ end
 -- board open: ONE payload carries the snapshot + Open flag (no ordering hazard)
 function ClanService.openBoard(player: Player)
 	ClanService.sync(player, true)
+	ClanService.Events.BoardOpened:Fire(player)
 end
 
 function ClanService.Init()

@@ -438,6 +438,7 @@ def build_plaza():
                  color=(90, 160, 210), material="Glass", transparency=0.35, cancollide=False)
     pillar = part("FountainPillar", (1.4, 2.8, 1.4), (0, 2.4, 0), color=(190, 188, 180), material="Concrete")
     orb = part("FountainOrb", (2.0, 2.0, 2.0), (0, 4.0, 0), shape="Ball", color=(255, 200, 120), material="Neon")
+    add_light(orb, (255, 200, 120), 1.6, 16)
     spawn = Node("SpawnLocation", "SpawnPoint")
     spawn.p("vec3", "size", (8, 0.2, 8))
     spawn.p("cframe", "CFrame", (0, 0.23, 20), 0, 0)
@@ -473,6 +474,7 @@ def build_plaza():
     for lx, lz in ((-22, -22), (22, -22), (-22, 22), (22, 22)):
         pole = part("LampPole", (0.35, 7.5, 0.35), (lx, base + 3.75, lz), color=(60, 62, 68), material="Metal")
         bulb = part("LampBulb", (1.1, 0.8, 1.1), (lx, base + 7.9, lz), color=(255, 214, 150), material="Neon")
+        add_light(bulb, (255, 214, 150), 1.2, 15)
         lamps.append(model("Lamp", pole, bulb))
     benches = []
     for bx, bz, byaw in ((-8, 12, 180), (10, 12, 180), (-10, -12, 0)):
@@ -521,8 +523,47 @@ def build_props():
     for i, (lx, lz) in enumerate(((-56, -56), (56, -56), (-56, 56), (56, 56)), start=1):
         pole = part("RoadLampPole%d" % i, (0.4, 8.5, 0.4), (lx, 4.05, lz), color=(60, 62, 68), material="Metal")
         bulb = part("RoadLampBulb%d" % i, (1.2, 0.8, 1.2), (lx, 8.9, lz), color=(255, 220, 160), material="Neon")
+        add_light(bulb, (255, 220, 160), 1.0, 16)
         props.append(model("RoadLamp%d" % i, pole, bulb))
     return props
+
+
+
+def add_light(part_node, color=(255, 214, 150), brightness=1.2, range_=14.0):
+    """Phase 9: attach a PointLight so Neon glow actually illuminates."""
+    light = Node("PointLight", "Light")
+    light.p("float", "Brightness", brightness)
+    light.p("float", "Range", range_)
+    light.p("color3", "Color", color)
+    part_node.add(light)
+    return part_node
+
+
+def build_lighting():
+    """Phase 9: initial lighting mood + atmosphere + grade (CampaignService re-grades later)."""
+    lighting = Node("Lighting", "Lighting")
+    lighting.p("float", "Brightness", 2.6)
+    lighting.p("float", "ClockTime", 16.5)
+    lighting.p("bool", "GlobalShadows", True)
+    lighting.p("float", "FogEnd", 1200.0)
+    lighting.p("color3", "FogColor", (200, 208, 222))
+    lighting.p("color3", "OutdoorAmbient", (118, 122, 134))
+    lighting.p("color3", "Ambient", (74, 76, 84))
+    atmo = Node("Atmosphere", "Atmosphere")
+    atmo.p("float", "Density", 0.3)
+    atmo.p("float", "Offset", 0.25)
+    atmo.p("float", "Haze", 1.4)
+    atmo.p("float", "Glare", 0.35)
+    atmo.p("color3", "Color", (150, 160, 180))
+    atmo.p("color3", "Decay", (110, 108, 128))
+    lighting.add(atmo)
+    cc = Node("ColorCorrectionEffect", "Grade")
+    cc.p("float", "Brightness", 0.02)
+    cc.p("float", "Contrast", 0.08)
+    cc.p("float", "Saturation", -0.05)
+    cc.p("color3", "TintColor", (255, 248, 232))
+    lighting.add(cc)
+    return lighting
 
 
 def build_community_board():
@@ -538,6 +579,7 @@ def build_support_terminal():
     stand = part("TerminalStand", (0.4, 1.4, 0.4), (-9, 0.7, -17), color=(50, 54, 62), material="Metal")
     screen = part("SupportTerminal", (1.6, 1.1, 0.18), (-9, 1.85, -17), yaw=205,
                   color=(28, 32, 40), material="Metal")
+    add_light(screen, (60, 140, 255), 1.6, 11)
     surface_text(screen, "SUPPORT MERIDIAN", headline_name="Headline", sub="Press E when options go live")
     return model("SupportTerminal", stand, screen)
 
@@ -577,6 +619,7 @@ def build_hero_kiosk():
     surface_text(kiosk, "HEROES HALL", headline_name="Headline", sub="Recruit • Evolve ★ • Deploy — press E")
     kiosk_base = part("KioskBase", (3.0, 0.3, 1.7), (16, 0.28, -17), color=(40, 46, 60), material="Metal")
     lamp = part("KioskLamp", (0.5, 0.24, 0.5), (16, 3.7, -17), color=(150, 200, 255), material="Neon")
+    add_light(lamp, (150, 200, 255), 1.5, 12)
     return model("HeroKioskBlock", kiosk, kiosk_base, lamp)
 
 
@@ -764,8 +807,9 @@ def build_replicated_storage():
 def build_server_script_service():
     node = Node("ServerScriptService", "ServerScriptService")
     bootstrap = script_node("Script", "Bootstrap", os.path.join(SRC, "ServerScriptService", "Bootstrap.server.lua"))
+    worldfx = script_node("Script", "WorldFX", os.path.join(SRC, "ServerScriptService", "WorldFX.server.lua"))
     services = map_dir_to_folder(os.path.join(SRC, "ServerScriptService", "Services"), "Services")
-    node.add(bootstrap, services)
+    node.add(bootstrap, worldfx, services)
     return node
 
 
@@ -792,7 +836,7 @@ def main():
            'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
            'xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">']
     xml_lines = []
-    for top in (workspace, build_replicated_storage(), build_server_script_service(), build_starter_player()):
+    for top in (workspace, build_replicated_storage(), build_server_script_service(), build_starter_player(), build_lighting()):
         render(top, 1, xml_lines)
     doc.extend(xml_lines)
     doc.append("</roblox>")

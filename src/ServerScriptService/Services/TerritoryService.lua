@@ -268,6 +268,18 @@ end
 
 -- ----------------------------------------------------------------- init ----
 function TerritoryService.Init()
+	-- board open: push the current zone snapshot ( ClanUI territory board)
+	ClanService.Events.BoardOpened:Connect(function(player)
+		TerritoryService.sync(player, true)
+	end)
+	-- join: give the client current ownership up front (banner tints are world state)
+	Players.PlayerAdded:Connect(function(player)
+		task.delay(6, function()
+			if Players:FindFirstChild(player.Name) then
+				TerritoryService.sync(player)
+			end
+		end)
+	end)
 	-- load zone state (graceful when unpublished — DataStore API off)
 	pcall(function()
 		store = DataStoreService:GetDataStore("DistrictsAfterlight_Territory_v1")
