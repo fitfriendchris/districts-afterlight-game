@@ -21,7 +21,7 @@ local suppliesLabel = UIKit.label(frame, "Scrap 0 ·  Fabric 0 ·  Meds 0", UDim
 local xpBack = Instance.new("Frame")
 xpBack.Size = UDim2.new(1, -24, 0, 8)
 xpBack.Position = UDim2.fromOffset(12, 76)
-xpBack.BackgroundColor3 = Color3.fromRGB(40, 44, 54)
+xpBack.BackgroundColor3 = Color3.fromRGB(26, 35, 50)
 xpBack.BorderSizePixel = 0
 xpBack.Parent = frame
 UIKit.corner(xpBack, 4)
@@ -35,7 +35,7 @@ UIKit.corner(xpFill, 4)
 
 -- Objective tracker (right side)
 local objGui, objFrame = UIKit.panel("ObjectiveTracker", UDim2.fromOffset(300, 84), UDim2.new(1, -312, 0, 12))
-objFrame.BackgroundColor3 = Color3.fromRGB(14, 20, 26)
+objFrame.BackgroundColor3 = Color3.fromRGB(23, 32, 46)
 objFrame.BackgroundTransparency = 0.3
 local objTitle = UIKit.label(objFrame, "Getting on Your Feet", UDim2.new(1, -16, 0, 20), UDim2.fromOffset(12, 8), 14, Color3.fromRGB(255, 214, 130))
 local objText = UIKit.label(objFrame, "", UDim2.new(1, -16, 0, 40), UDim2.fromOffset(12, 30), 15, Color3.fromRGB(230, 230, 238))
@@ -57,7 +57,7 @@ local function toast(text: string, duration: number)
 	local t = Instance.new("TextLabel")
 	t.Size = UDim2.new(1, 0, 0, 30)
 	t.AutomaticSize = Enum.AutomaticSize.Y
-	t.BackgroundColor3 = Color3.fromRGB(24, 26, 32)
+	t.BackgroundColor3 = Color3.fromRGB(36, 48, 66)
 	t.BackgroundTransparency = 0.15
 	t.Font = Enum.Font.SourceSansBold
 	t.TextSize = 16

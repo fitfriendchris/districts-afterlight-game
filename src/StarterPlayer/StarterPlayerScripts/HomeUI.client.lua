@@ -32,7 +32,7 @@ Net.event("HOME_ACT").OnClientEvent:Connect(function(payload)
 		rowIdx += 1
 		local rf = Instance.new("Frame")
 		rf.Size = UDim2.new(1, 0, 0, 104)
-		rf.BackgroundColor3 = Color3.fromRGB(30, 34, 44)
+		rf.BackgroundColor3 = Color3.fromRGB(38, 50, 70)
 		rf.Parent = scroller
 		UIKit.corner(rf, 8)
 		rf.LayoutOrder = rowIdx

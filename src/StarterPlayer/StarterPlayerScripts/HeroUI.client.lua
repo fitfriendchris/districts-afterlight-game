@@ -7,7 +7,7 @@ local HeroDefinitions = require(ReplicatedStorage.Shared.Definitions.HeroDefinit
 local UIKit = require(script.Parent.UIKit)
 
 local panelGui, panel = UIKit.panel("HeroUI", UDim2.fromOffset(500, 430), UDim2.new(0.5, -250, 1, -470))
-panel.BackgroundColor3 = Color3.fromRGB(16, 17, 21)
+panel.BackgroundColor3 = Color3.fromRGB(30, 41, 59)
 panel.BackgroundTransparency = 0.08
 local stroke = Instance.new("UIStroke")
 stroke.Color = Color3.fromRGB(255, 210, 130)
@@ -51,7 +51,7 @@ local function syncPanel(Heroes)
 		end
 		row = Instance.new("Frame")
 		row.Size = UDim2.new(1, 0, 0, 34)
-		row.BackgroundColor3 = entry and Color3.fromRGB(26, 30, 40) or Color3.fromRGB(20, 22, 28)
+		row.BackgroundColor3 = entry and Color3.fromRGB(33, 44, 63) or Color3.fromRGB(25, 33, 48)
 		row.BorderSizePixel = 0
 		row.LayoutOrder = heroDef.rarity == "Legendary" and 1 or heroDef.rarity == "Epic" and 2 or heroDef.rarity == "Rare" and 3 or 4
 		row.Parent = listFrame

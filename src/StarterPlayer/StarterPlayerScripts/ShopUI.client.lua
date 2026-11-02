@@ -20,7 +20,7 @@ local scroller = UIKit.scroller(frame, UDim2.new(1, -24, 1, -92), UDim2.fromOffs
 local function row(parent: Instance, height: number, order: number): Frame
 	local rf = Instance.new("Frame")
 	rf.Size = UDim2.new(1, 0, 0, height)
-	rf.BackgroundColor3 = Color3.fromRGB(30, 34, 44)
+	rf.BackgroundColor3 = Color3.fromRGB(38, 50, 70)
 	rf.Parent = parent
 	UIKit.corner(rf, 8)
 	rf.LayoutOrder = order

@@ -2,7 +2,7 @@
 -- Single source of truth for interaction coordinates used by services.
 return {
 	HOME_INTERIOR = { x = -60, y = 0, z = -8 },
-	PACKAGE_DEPOT = { x = 20, y = 1.9, z = -12 },
+	PACKAGE_DEPOT = { x = 20, y = 1.87, z = -12 },
 	DELIVERY_TARGETS = {
 		{ x = -70, y = 0.23, z = -57.9 },
 		{ x = 26, y = 0.23, z = -69.9 },
@@ -20,14 +20,14 @@ return {
 		{ x = -30, y = 3, z = -76 },
 		{ x = 54, y = 3, z = -52 },
 	},
-	HERO_KIOSK = { x = 16.0, y = 1.83, z = -17.0 },
+	HERO_KIOSK = { x = 16, y = 2.2, z = -17 },
 	BUILD_PADS = {
 		{ x = -66, y = 0.24, z = -38 },
 		{ x = -58, y = 0.24, z = -38 },
 		{ x = -66, y = 0.24, z = -46 },
 		{ x = -58, y = 0.24, z = -46 },
 	},
-	CLAN_HALL = { x = 12.0, y = 1.8, z = -26.0 },
+	CLAN_HALL = { x = 12, y = 2.94, z = -26 },
 	TERRITORY_ZONES = {
 		PLAZA = { key = 'PLAZA', name = 'Meridian Plaza', x = 0, z = 0, radius = 16 },
 		DEPOT = { key = 'DEPOT', name = 'Courier Depot', x = 20, z = -12, radius = 12 },

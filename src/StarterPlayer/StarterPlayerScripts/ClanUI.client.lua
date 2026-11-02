@@ -7,7 +7,7 @@ local ClanConfig = require(ReplicatedStorage.Shared.Configs.ClanConfig)
 local UIKit = require(script.Parent.UIKit)
 
 local panelGui, panel = UIKit.panel("ClanUI", UDim2.fromOffset(540, 440), UDim2.new(0.5, -270, 1, -480))
-panel.BackgroundColor3 = Color3.fromRGB(16, 17, 21)
+panel.BackgroundColor3 = Color3.fromRGB(30, 41, 59)
 panel.BackgroundTransparency = 0.08
 local stroke = Instance.new("UIStroke")
 stroke.Color = Color3.fromRGB(255, 210, 130)
@@ -32,7 +32,7 @@ layout.Parent = body
 -- ------------------------------------------------------------- mine row ----
 local mineRow = Instance.new("Frame")
 mineRow.Size = UDim2.new(1, 0, 0, 58)
-mineRow.BackgroundColor3 = Color3.fromRGB(26, 30, 40)
+mineRow.BackgroundColor3 = Color3.fromRGB(33, 44, 63)
 mineRow.BorderSizePixel = 0
 mineRow.LayoutOrder = 0
 mineRow.Parent = body
@@ -55,7 +55,7 @@ local function input(parent, placeholder, x, w)
 	local box = Instance.new("TextBox")
 	box.Size = UDim2.fromOffset(w, 26)
 	box.Position = UDim2.new(0, x, 1, -30)
-	box.BackgroundColor3 = Color3.fromRGB(34, 38, 48)
+	box.BackgroundColor3 = Color3.fromRGB(44, 56, 78)
 	box.TextColor3 = Color3.fromRGB(235, 240, 250)
 	box.PlaceholderText = placeholder
 	box.PlaceholderColor3 = Color3.fromRGB(120, 128, 140)
@@ -97,7 +97,7 @@ end
 -- ------------------------------------------------------------ ally row ----
 local allyRow = Instance.new("Frame")
 allyRow.Size = UDim2.new(1, 0, 0, 30)
-allyRow.BackgroundColor3 = Color3.fromRGB(22, 26, 34)
+allyRow.BackgroundColor3 = Color3.fromRGB(29, 39, 55)
 allyRow.BorderSizePixel = 0
 allyRow.LayoutOrder = 1
 allyRow.Parent = body
@@ -166,7 +166,7 @@ local function syncClans()
 			if shown <= 4 then
 				local row = Instance.new("Frame")
 				row.Size = UDim2.new(1, 0, 0, 34)
-				row.BackgroundColor3 = Color3.fromRGB(20, 22, 28)
+				row.BackgroundColor3 = Color3.fromRGB(25, 33, 48)
 				row.BorderSizePixel = 0
 				row.LayoutOrder = shown
 				row.Parent = clansFrame
@@ -204,7 +204,7 @@ local function syncZones()
 	for i, zone in ipairs(state.Zones) do
 		local row = Instance.new("Frame")
 		row.Size = UDim2.new(1, 0, 0, 26)
-		row.BackgroundColor3 = Color3.fromRGB(20, 22, 28)
+		row.BackgroundColor3 = Color3.fromRGB(25, 33, 48)
 		row.BorderSizePixel = 0
 		row.LayoutOrder = i
 		row.Parent = zonesFrame

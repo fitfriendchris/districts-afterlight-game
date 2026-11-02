@@ -652,40 +652,24 @@ def build_phase2_nodes(hx, hz):
 
 
 def build_world():
-    home = build_home(-60, -8)
-    meridian = Node("Model", "Meridian")
-    meridian.add(
-        part("Ground", (420, 2, 420), (0, -1, 0), color=(58, 58, 62), material="Asphalt"),
-        model("Roads",
-              part("RoadN", (300, 0.5, 12), (0, 0.05, -36), color=(74, 74, 78), material="Asphalt"),
-              part("RoadS", (300, 0.5, 12), (0, 0.05, 36), color=(74, 74, 78), material="Asphalt"),
-              part("RoadE", (12, 0.5, 300), (36, 0.05, 0), color=(74, 74, 78), material="Asphalt"),
-              part("RoadW", (12, 0.5, 300), (-36, 0.05, 0), color=(74, 74, 78), material="Asphalt")),
-        build_plaza(),
-        home,
-        build_shop(),
-        model("Buildings",
-              build_building("Building1", -70, -70, 28, 20, 30, "+z", (176, 182, 196)),
-              build_building("Building2", 26, -84, 30, 24, 46, "+z", (154, 160, 178)),
-              build_building("Building3", 88, -64, 26, 22, 20, "-x", (198, 166, 126)),
-              build_building("Building4", 94, 10, 30, 26, 38, "-x", (126, 170, 168)),
-              build_building("Building5", 78, 84, 26, 20, 16, "-z", (184, 112, 98)),
-              build_building("Building6", 6, 92, 34, 22, 24, "-z", (152, 152, 158)),
-              build_building("Building7", -66, 58, 28, 20, 34, "+x", (150, 162, 148))),
-        build_targets(),
-        build_phase2_nodes(-60, -8),
-        build_hero_kiosk(),
-        build_settlement_pads(-60, -8),
-        build_settlement_board(-60, -8),
-        build_clan_hall(-60, -8),
-        build_territory_flags(),
-        build_community_board(),
-        build_support_terminal(),
-        model("Vans", build_van("Van1", 46, -8), build_van("Van2", 46, 16)),
-        model("Props", *build_props()),
-    )
+    """V2: the city lives in world_v2.build_meridian_v2(); this builder consumes
+    its coordinate overrides so the WorldLayout emission shares ONE source of
+    truth with the constructed world (no drift)."""
+    import world_v2
+    meridian, ov = world_v2.build_meridian_v2()
+    g = globals()
+    g["DELIVERY_TARGETS"] = [(x, y, z) for (x, y, z) in ov["DELIVERY_TARGETS"]]
+    g["PACKAGE_DEPOT"] = tuple(ov["PACKAGE_DEPOT"])
+    g["RUBBLE_PILES"] = [tuple(t) for t in ov["RUBBLE_PILES"]]
+    g["INFECTED_SPAWNS"] = [tuple(t) for t in ov["INFECTED_SPAWNS"]]
+    g["TERRITORY_ZONES"] = [tuple(t) for t in ov["TERRITORY_ZONES"]]
+    g["PAD_OFFSETS"] = [tuple(t) for t in ov["PAD_OFFSETS"]]
+    g["BUILD_PADS"] = [tuple(t) for t in ov["BUILD_PADS"]]
+    g["V2_HERO_KIOSK"] = tuple(ov["HERO_KIOSK"]) if ov.get("HERO_KIOSK") else (16.0, 2.2, -17.0)
+    g["V2_CLAN_HALL"] = tuple(ov["CLAN_HALL"])
     workspace = Node("Workspace", "Workspace").add(meridian)
-    return workspace, home.interior
+    home_interior = tuple(ov["HOME_INTERIOR"])
+    return workspace, home_interior
 
 
 # --------------------------------------------------- WorldLayout emission ----
@@ -707,6 +691,8 @@ TERRITORY_ZONES = [
 # Phase 4: settlement foundation pads — offsets from the home lot (north yard)
 PAD_OFFSETS = [(-6.0, -30.0), (2.0, -30.0), (-6.0, -38.0), (2.0, -38.0)]
 BUILD_PADS: list = []  # filled by build_settlement_pads()
+V2_HERO_KIOSK = (16.0, 1.83, -17.0)   # overridden by world_v2 at build time
+V2_CLAN_HALL = (12.0, 1.8, -26.0)     # overridden by world_v2 at build time
 
 
 def build_settlement_pads(hx, hz):
@@ -745,12 +731,12 @@ def write_world_layout(home_interior):
     for (x, y, z) in INFECTED_SPAWNS:
         lines.append("\t\t{ x = %s, y = %s, z = %s }," % (num(x), num(y), num(z)))
     lines.append("\t},")
-    lines.append("\tHERO_KIOSK = { x = 16.0, y = 1.83, z = -17.0 },")
+    lines.append("\tHERO_KIOSK = { x = %s, y = %s, z = %s }," % tuple(num(v) for v in V2_HERO_KIOSK))
     lines.append("\tBUILD_PADS = {")
     for (x, y, z) in BUILD_PADS:
         lines.append("\t\t{ x = %s, y = %s, z = %s }," % (num(x), num(y), num(z)))
     lines.append("\t},")
-    lines.append("\tCLAN_HALL = { x = 12.0, y = 1.8, z = -26.0 },")
+    lines.append("\tCLAN_HALL = { x = %s, y = %s, z = %s }," % tuple(num(v) for v in V2_CLAN_HALL))
     lines.append("\tTERRITORY_ZONES = {")
     for (key, name, x, z, r) in TERRITORY_ZONES:
         lines.append("\t\t%s = { key = %r, name = %r, x = %s, z = %s, radius = %s }," % (key, key, name, num(x), num(z), num(r)))

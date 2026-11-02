@@ -6,7 +6,7 @@ local Net = require(ReplicatedStorage.Net)
 local UIKit = require(script.Parent.UIKit)
 
 local gui, frame = UIKit.panel("DialogueUI", UDim2.fromOffset(560, 210), UDim2.new(0.5, -280, 1, -240))
-frame.BackgroundColor3 = Color3.fromRGB(18, 22, 26)
+frame.BackgroundColor3 = Color3.fromRGB(30, 41, 59)
 gui.Enabled = false
 gui.DisplayOrder = 20
 
